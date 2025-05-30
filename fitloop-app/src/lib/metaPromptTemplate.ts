@@ -1,15 +1,15 @@
-export const META_PROMPT_TEMPLATE = `# {{userName}}さんの脂肪燃焼 & 理想的筋肉バランス トレーニングシステム（メタプロンプト版）
+export const META_PROMPT_TEMPLATE = `# 脂肪燃焼 & 理想的筋肉バランス トレーニングシステム（メタプロンプト版）
 
 ## 🔄 重要：このプロンプトの自動更新機能
 
-**このプロンプトはメタプロンプトです。** トレーニング記録を入力すると、AIが自動的に：
+**このプロンプトはメタプロンプトです。** トレーニング記録を入力すると、Claude が自動的に：
 
 1. **データを分析** - 最新のトレーニング実績と体組成を評価
 2. **筋肉バランスを更新** - 使用重量から筋力バランスを再計算  
 3. **次回プランを調整** - 最適な重量と回数を設定
 4. **新しいプロンプトを生成** - 完全に更新されたプロンプト全体をアーティファクトで出力
 
-**⭐ 使用方法**: 下記のテンプレートでトレーニング記録を送信してください。AIが即座に次回用の新しいプロンプトを生成します。
+**⭐ 使用方法**: 下記のテンプレートでトレーニング記録を送信してください。Claude が即座に次回用の新しいプロンプトを生成します。
 
 ---
 
@@ -23,37 +23,14 @@ export const META_PROMPT_TEMPLATE = `# {{userName}}さんの脂肪燃焼 & 理�
 4. **トレーニングサイクルの自動進行管理**：前回のセッションから次のセッションを自動表示
 5. **🔄 メタプロンプト機能**：トレーニング記録入力後、完全に更新されたプロンプトを自動生成
 
-## あなたの目標と環境
-
-**目標**: {{goals}}
-**環境**: {{environment}}
-
 ## 最新のトレーニング記録
 
-**最後に実施したトレーニング**: セッション{{lastSessionNumber}}（{{lastTrainingDate}}実施）
-**次回のトレーニング**: セッション{{sessionNumber}}（{{sessionTitle}}）
-
-## 最新の身体測定値
-
-{{#hasMeasurements}}
-**体組成**（{{measurementDate}}測定）
-- 体重: {{weight}}kg
-- 体脂肪率: {{bodyFatPercentage}}%
-- 筋肉量: {{muscleMass}}%
-
-**トレンド**
-- 体重変化: {{weightChange}}kg
-- 体脂肪変化: {{fatChange}}%
-- 筋肉量変化: {{muscleChange}}%
-{{/hasMeasurements}}
-
-{{^hasMeasurements}}
-**身体測定値**: まだ記録されていません。体組成データを追加すると、より最適化されたプログラムを提供できます。
-{{/hasMeasurements}}
+**最後に実施したトレーニング**: {{lastSession}}
+**次回のトレーニング**: {{nextSession}}
 
 ## 🎯 トレーニング記録の送信方法（超簡単！）
 
-**自由記述でOK！** 何をどんな重量で何回やったかが分かれば十分です。送信後、AIが自動的に次回用の完全に更新されたプロンプトをアーティファクトで出力します。
+**自由記述でOK！** 何をどんな重量で何回やったかが分かれば十分です。送信後、Claude が自動的に次回用の完全に更新されたプロンプトをアーティファクトで出力します。
 
 ### 📝 記入方法（自由記述）
 
@@ -65,204 +42,390 @@ export const META_PROMPT_TEMPLATE = `# {{userName}}さんの脂肪燃焼 & 理�
 **📱 体組成データ**：
 - 体重計アプリのスクショをアップロードするだけでOK！
 - なくても大丈夫ですが、あるとより最適化されたトレーニングメニューを組めます
-- 体重、体脂肪率、筋肉量が分かると完璧
 
 ### ✅ 記入例
 
 \`\`\`
-ダンベルベンチプレス 20kg 10回 3セット
-インクラインフライ 8kg 12回 3セット  
-トライセプスエクステンション 10kg 15回 3セット
+ダンベルスクワット 45ポンド10回3セット
+ルーマニアンデッドリフト 45ポンド5回3セット  
+ウェイテッドクランチ 35ポンド10回3セット
 \`\`\`
 
-## 過去のトレーニング実績データ
+## 🔄 Claude への指示（メタプロンプト機能）
 
-{{#trainingHistory}}
-セッション{{sessionNumber}}: [{{date}}]
-{{#exercises}}
-- {{name}}: {{weight}}{{unit}} × {{reps}}回 × {{sets}}セット
-{{/exercises}}
-
-{{/trainingHistory}}
-
-{{^trainingHistory}}
-まだトレーニング記録がありません。最初のセッションを始めましょう！
-{{/trainingHistory}}
-
-## 筋肉バランス分析
-
-{{#hasAnalysis}}
-**筋力バランス評価**:
-- 上半身プッシュ系（胸・三頭・肩前部）: {{pushUpperStrength}}
-- 上半身プル系（背中・二頭・肩後部）: {{pullUpperStrength}}
-- 下半身（大腿前部）: {{lowerFrontStrength}}
-- 下半身（大腿後部・臀部）: {{lowerBackStrength}}
-- コア（腹筋）: {{coreStrength}}
-
-**推奨事項**:
-{{#recommendations}}
-- {{.}}
-{{/recommendations}}
-{{/hasAnalysis}}
-
-{{^hasAnalysis}}
-トレーニング実績が蓄積されると、詳細な筋肉バランス分析を提供します。
-{{/hasAnalysis}}
-
-## 次回のトレーニング詳細
-
-### セッション{{sessionNumber}}: {{sessionTitle}}
-
-**ウォームアップ (5分)**
-- 軽いジョギング - 3分
-- 対象部位のストレッチ - 2分
-
-**筋力トレーニング (20分)**
-{{#exercises}}
-{{order}}. **{{name}}**
-   - {{sets}}セット x {{targetReps}}回
-   - 推奨重量: {{weight}}{{unit}}
-   - セット間{{rest}}秒休憩
-{{/exercises}}
-
-**カーディオ (30分)**
-- 標準HIITプロトコルまたは中強度定常状態カーディオ
-
-**ストレッチ (5分)**
-- 使用した筋肉群のストレッチ
-
-## 🔄 AIへの指示（メタプロンプト機能）
-
-**AIよ、ユーザーがトレーニング記録を送信したら、以下の手順で新しいプロンプトを生成してください：**
+**Claude よ、ユーザーがトレーニング記録を送信したら、以下の手順で新しいプロンプトを生成してください：**
 
 ### ステップ1: データ抽出・分析
 - 自由記述からエクササイズ名、重量、回数、セット数を識別
-- 体組成データがあれば抽出
 - 新しい実績を過去データに追加
+- 前回との比較でパフォーマンス評価
 
 ### ステップ2: 筋肉バランス更新
 - 各筋肉群の相対的強度を再計算
 - 弱い部位と強い部位を特定
-- 理想的な黄金比からの乖離を測定
 
 ### ステップ3: 次回トレーニング調整
-- セッション番号を次に進める（1→2→3→4→5→6→7→8→1...）
+- セッション番号を次に進める
 - 各エクササイズの推奨重量を実績に基づいて調整
-- 弱い筋肉群には特別な注意を払う
 
 ### ステップ4: 新プロンプト生成
 - 全ての更新を反映した完全に新しいプロンプトを作成
 - アーティファクトとして出力
 
-## トレーニングセッション基本構造
+### 重要な指示
+1. **プロンプト全体を出力**：部分的な変更ではなく、完全なプロンプトをアーティファクトで出力
+2. **セッション番号の更新**：現在のセッションから次のセッションへ自動進行
+3. **重量の調整**：実績に基づいて次回の推奨重量を±5-10ポンド調整
+4. **筋肉バランスの評価**：使用重量から各部位の発達状況を推測
+5. **個人最適化**：ユーザーの進捗に合わせてプログラムを調整
+
+## 次回のトレーニング詳細
+
+### {{currentSession}}
+
+**筋力トレーニング (20分)**
+{{exercises}}
+
+**カーディオプロトコル（各セッション共通）**
+
+**オプション1: HIIT (15分)**
+- ウォームアップ: 2分（軽いジョギング）
+- インターバル: 30秒全力スプリント / 90秒回復ジョグ x 8セット
+- クールダウン: 3分（ウォーキング）
+
+**オプション2: ゾーン2有酸素 (20-30分)**
+- 心拍数120-140bpmを維持
+- 会話ができる程度のペース
+- ジョギング、自転車、またはローイングマシン
+
+## トレーニングサイクル（8セッション構成）
 
 ### セッション1: 胸部 & 三頭筋
-- ダンベルベンチプレス（8-10回）
-- インクラインダンベルフライ（10-12回）
-- ダンベルトライセプスエクステンション（10-12回）
+**筋力トレーニング (20分)**
+1. **ダンベルベンチプレス**
+   - 3セット x 8-10回
+   - 推奨重量: 30ポンド
+   - セット間60秒休憩
+
+2. **インクラインダンベルフライ**
+   - 3セット x 10-12回
+   - 推奨重量: 20ポンド
+   - セット間60秒休憩
+
+3. **ダンベルトライセプスエクステンション**
+   - 3セット x 10-12回
+   - 推奨重量: 20ポンド
+   - セット間45秒休憩
 
 ### セッション2: 背中 & 二頭筋
-- ワンアームダンベルロウ（8-10回）
-- ダンベルプルオーバー（8-10回）
-- ダンベルカール（10-12回）
+**筋力トレーニング (20分)**
+1. **ダンベルロウ（片手ずつ）**
+   - 3セット x 8-10回（各腕）
+   - 推奨重量: 35ポンド
+   - セット間60秒休憩
 
-### セッション3: 脚 & コア
-- ダンベルスクワット（10-12回）
-- ダンベルルーマニアンデッドリフト（8-10回）
-- ウェイテッドクランチ（12-15回）
+2. **ダンベルプルオーバー**
+   - 3セット x 10-12回
+   - 推奨重量: 30ポンド
+   - セット間60秒休憩
+
+3. **ダンベルカール**
+   - 3セット x 10-12回
+   - 推奨重量: 25ポンド
+   - セット間45秒休憩
+
+### セッション3: 脚部 & 腹部
+**筋力トレーニング (20分)**
+1. **ダンベルスクワット**
+   - 3セット x 10-12回
+   - 推奨重量: 45ポンド
+   - セット間90秒休憩
+
+2. **ダンベルルーマニアンデッドリフト**
+   - 3セット x 10-12回
+   - 推奨重量: 45ポンド
+   - セット間90秒休憩
+
+3. **ウェイテッドクランチ**
+   - 3セット x 15-20回
+   - 推奨重量: 35ポンド
+   - セット間45秒休憩
 
 ### セッション4: 肩 & 前腕
-- ダンベルショルダープレス（8-10回）
-- ダンベルラテラルレイズ（10-12回）
-- ダンベルリストカール（12-15回）
+**筋力トレーニング (20分)**
+1. **ダンベルショルダープレス**
+   - 3セット x 8-10回
+   - 推奨重量: 30ポンド
+   - セット間60秒休憩
+
+2. **ダンベルラテラルレイズ**
+   - 3セット x 10-12回
+   - 推奨重量: 25ポンド
+   - セット間60秒休憩
+
+3. **ダンベルリストカール（前腕）**
+   - 3セット x 12-15回
+   - 推奨重量: 15ポンド
+   - セット間45秒休憩
 
 ### セッション5: 全身サーキット
-- ダンベルスラスター（12-15回）
-- ダンベルロウ（12-15回）
-- ダンベルロシアンツイスト（左右15-20回）
+**サーキットトレーニング (20分)**
+1. **ダンベルスラスター**
+   - 3セット x 12-15回
+   - 推奨重量: 25ポンド
+   - セット間60秒休憩
 
-### セッション6: 上半身複合
-- ダンベルプッシュプレス（8-10回）
-- ダンベルベントオーバーロウ（8-10回）
-- ダンベルハンマーカール（10-12回）
+2. **ダンベルロウ（両手同時）**
+   - 3セット x 12-15回
+   - 推奨重量: 35ポンド
+   - セット間60秒休憩
 
-### セッション7: 下半身 & 腹筋
-- ダンベルランジ（12-15回）
-- ダンベルカーフレイズ（15-18回）
-- ウェイテッドクランチ（12-15回）
+3. **ダンベルロシアンツイスト**
+   - 3セット x 左右15回ずつ
+   - 推奨重量: 30ポンド
+   - セット間45秒休憩
 
-### セッション8: 機能的全身
-- ダンベルスイング（12-15回）
-- ダンベルアップライトロウ（10-12回）
-- プランクウィズダンベルプル（8-10回）
+### セッション6: 胸部 & 肩（複合）
+**筋力トレーニング (20分)**
+1. **インクラインダンベルプレス**
+   - 3セット x 8-10回
+   - 推奨重量: 35ポンド
+   - セット間60秒休憩
 
-## 理想的な筋肉バランスの指針
+2. **ダンベルアーノルドプレス**
+   - 3セット x 10-12回
+   - 推奨重量: 30ポンド
+   - セット間60秒休憩
 
-美しい筋肉バランスは以下の比率に基づいています：
+3. **ダンベルプッシュアップ（ダンベルをグリップ）**
+   - 3セット x 12-15回
+   - 体重のみ
+   - セット間45秒休憩
 
-1. **黄金比に基づく体型**:
-   - 肩幅：ウエスト = 1.618：1（黄金比）
-   - 胸囲：ウエスト = 1.4：1
-   - 上腕：前腕 = 1.5：1
+### セッション7: 背中 & 脚（複合）
+**筋力トレーニング (20分)**
+1. **ダンベルデッドリフト**
+   - 3セット x 8-10回
+   - 推奨重量: 50ポンド
+   - セット間90秒休憩
 
-2. **筋肉群間のバランス**:
-   - 胸部：背中 = 1：1（均等な発達）
-   - プッシュ系：プル系 = 1：1（力のバランス）
+2. **ブルガリアンスプリットスクワット**
+   - 3セット x 10-12回（各脚）
+   - 推奨重量: 30ポンド
+   - セット間60秒休憩
 
-## 栄養戦略の基本指針
+3. **ダンベルシュラッグ**
+   - 3セット x 12-15回
+   - 推奨重量: 40ポンド
+   - セット間45秒休憩
 
-**マクロ栄養素バランス（体重基準）**
-- タンパク質: 体重1kgあたり2.0-2.2g
-- 炭水化物: 体重1kgあたり3-4g
-- 脂質: 体重1kgあたり1g
+### セッション8: 腕 & 腹部（仕上げ）
+**筋力トレーニング (20分)**
+1. **ダンベル21カール**
+   - 3セット x 21回（下半分7回→上半分7回→フル7回）
+   - 推奨重量: 20ポンド
+   - セット間60秒休憩
 
-**トレーニング前後の栄養**
-- トレーニング前: 炭水化物30-40g + タンパク質20g（1-2時間前）
-- トレーニング後: 炭水化物40-50g + タンパク質30g（30分以内）
+2. **ダンベルオーバーヘッドトライセプスエクステンション**
+   - 3セット x 10-12回
+   - 推奨重量: 25ポンド
+   - セット間60秒休憩
+
+3. **ウェイテッドプランク**
+   - 3セット x 30-45秒
+   - 推奨重量: 25ポンド（背中に載せる）
+   - セット間60秒休憩
+
+## 筋肉バランス分析
+
+**現在の筋肉バランス評価**：
+- プッシュ系上半身（胸・肩・三頭筋）: {{pushUpperBodyStatus}}
+- プル系上半身（背中・二頭筋）: {{pullUpperBodyStatus}}
+- 下半身前面（大腿四頭筋）: {{lowerBodyFrontStatus}}
+- 下半身後面（ハムストリング・臀部）: {{lowerBodyBackStatus}}
+- コア（腹筋・体幹）: {{coreStatus}}
 
 ---
-
-**🎯 次のステップ**: セッション{{sessionNumber}}の実績を自由記述で送信してください。例：「ベンチプレス 20kg 10回 3セット...」のように気軽に！体重計アプリのスクショがあれば一緒にアップロードしてください。AIが即座に次回用の新しいプロンプトを生成します！`;
+<!-- METADATA_START -->
+{
+  "sessionNumber": {{sessionNumber}},
+  "sessionName": "{{sessionName}}",
+  "date": "{{date}}",
+  "exercises": {{exercisesJSON}},
+  "muscleBalance": {{muscleBalanceJSON}},
+  "recommendations": {{recommendationsJSON}},
+  "nextSession": {{nextSessionNumber}},
+  "cycleProgress": "{{cycleProgress}}"
+}
+<!-- METADATA_END -->`;
 
 export const META_PROMPT_EXERCISES = {
   1: [ // 胸・三頭筋
-    { name: 'ダンベルベンチプレス', sets: 3, weight: 20, unit: 'kg', targetReps: '8-10', rest: 90 },
-    { name: 'インクラインダンベルフライ', sets: 3, weight: 8, unit: 'kg', targetReps: '10-12', rest: 60 },
-    { name: 'ダンベルトライセプスエクステンション', sets: 3, weight: 10, unit: 'kg', targetReps: '10-12', rest: 60 }
+    { name: 'ダンベルベンチプレス', sets: 3, weight: 30, unit: 'ポンド', targetReps: '8-10', rest: 60 },
+    { name: 'インクラインダンベルフライ', sets: 3, weight: 20, unit: 'ポンド', targetReps: '10-12', rest: 60 },
+    { name: 'ダンベルトライセプスエクステンション', sets: 3, weight: 20, unit: 'ポンド', targetReps: '10-12', rest: 45 }
   ],
   2: [ // 背中・二頭筋
-    { name: 'ワンアームダンベルロウ', sets: 3, weight: 15, unit: 'kg', targetReps: '8-10', rest: 90 },
-    { name: 'ダンベルプルオーバー', sets: 3, weight: 12, unit: 'kg', targetReps: '8-10', rest: 60 },
-    { name: 'ダンベルカール', sets: 3, weight: 10, unit: 'kg', targetReps: '10-12', rest: 60 }
+    { name: 'ダンベルロウ（片手ずつ）', sets: 3, weight: 35, unit: 'ポンド', targetReps: '8-10（各腕）', rest: 60 },
+    { name: 'ダンベルプルオーバー', sets: 3, weight: 30, unit: 'ポンド', targetReps: '10-12', rest: 60 },
+    { name: 'ダンベルカール', sets: 3, weight: 25, unit: 'ポンド', targetReps: '10-12', rest: 45 }
   ],
-  3: [ // 脚・コア
-    { name: 'ダンベルスクワット', sets: 3, weight: 20, unit: 'kg', targetReps: '10-12', rest: 90 },
-    { name: 'ダンベルルーマニアンデッドリフト', sets: 3, weight: 20, unit: 'kg', targetReps: '8-10', rest: 90 },
-    { name: 'ウェイテッドクランチ', sets: 3, weight: 10, unit: 'kg', targetReps: '12-15', rest: 60 }
+  3: [ // 脚・腹部
+    { name: 'ダンベルスクワット', sets: 3, weight: 45, unit: 'ポンド', targetReps: '10-12', rest: 90 },
+    { name: 'ダンベルルーマニアンデッドリフト', sets: 3, weight: 45, unit: 'ポンド', targetReps: '10-12', rest: 90 },
+    { name: 'ウェイテッドクランチ', sets: 3, weight: 35, unit: 'ポンド', targetReps: '15-20', rest: 45 }
   ],
   4: [ // 肩・前腕
-    { name: 'ダンベルショルダープレス', sets: 3, weight: 12, unit: 'kg', targetReps: '8-10', rest: 90 },
-    { name: 'ダンベルラテラルレイズ', sets: 3, weight: 6, unit: 'kg', targetReps: '10-12', rest: 60 },
-    { name: 'ダンベルリストカール', sets: 3, weight: 8, unit: 'kg', targetReps: '12-15', rest: 45 }
+    { name: 'ダンベルショルダープレス', sets: 3, weight: 30, unit: 'ポンド', targetReps: '8-10', rest: 60 },
+    { name: 'ダンベルラテラルレイズ', sets: 3, weight: 25, unit: 'ポンド', targetReps: '10-12', rest: 60 },
+    { name: 'ダンベルリストカール（前腕）', sets: 3, weight: 15, unit: 'ポンド', targetReps: '12-15', rest: 45 }
   ],
   5: [ // 全身サーキット
-    { name: 'ダンベルスラスター', sets: 3, weight: 10, unit: 'kg', targetReps: '12-15', rest: 60 },
-    { name: 'ダンベルロウ', sets: 3, weight: 12, unit: 'kg', targetReps: '12-15', rest: 60 },
-    { name: 'ダンベルロシアンツイスト', sets: 3, weight: 8, unit: 'kg', targetReps: '左右15-20', rest: 60 }
+    { name: 'ダンベルスラスター', sets: 3, weight: 25, unit: 'ポンド', targetReps: '12-15', rest: 60 },
+    { name: 'ダンベルロウ（両手同時）', sets: 3, weight: 35, unit: 'ポンド', targetReps: '12-15', rest: 60 },
+    { name: 'ダンベルロシアンツイスト', sets: 3, weight: 30, unit: 'ポンド', targetReps: '左右15回ずつ', rest: 45 }
   ],
-  6: [ // 上半身複合
-    { name: 'ダンベルプッシュプレス', sets: 3, weight: 12, unit: 'kg', targetReps: '8-10', rest: 90 },
-    { name: 'ダンベルベントオーバーロウ', sets: 3, weight: 15, unit: 'kg', targetReps: '8-10', rest: 90 },
-    { name: 'ダンベルハンマーカール', sets: 3, weight: 10, unit: 'kg', targetReps: '10-12', rest: 60 }
+  6: [ // 胸部・肩（複合）
+    { name: 'インクラインダンベルプレス', sets: 3, weight: 35, unit: 'ポンド', targetReps: '8-10', rest: 60 },
+    { name: 'ダンベルアーノルドプレス', sets: 3, weight: 30, unit: 'ポンド', targetReps: '10-12', rest: 60 },
+    { name: 'ダンベルプッシュアップ（ダンベルをグリップ）', sets: 3, weight: 0, unit: '', targetReps: '12-15', rest: 45 }
   ],
-  7: [ // 下半身・腹筋
-    { name: 'ダンベルランジ', sets: 3, weight: 12, unit: 'kg', targetReps: '12-15', rest: 90 },
-    { name: 'ダンベルカーフレイズ', sets: 3, weight: 15, unit: 'kg', targetReps: '15-18', rest: 60 },
-    { name: 'ウェイテッドクランチ', sets: 3, weight: 10, unit: 'kg', targetReps: '12-15', rest: 60 }
+  7: [ // 背中・脚（複合）
+    { name: 'ダンベルデッドリフト', sets: 3, weight: 50, unit: 'ポンド', targetReps: '8-10', rest: 90 },
+    { name: 'ブルガリアンスプリットスクワット', sets: 3, weight: 30, unit: 'ポンド', targetReps: '10-12（各脚）', rest: 60 },
+    { name: 'ダンベルシュラッグ', sets: 3, weight: 40, unit: 'ポンド', targetReps: '12-15', rest: 45 }
   ],
-  8: [ // 機能的全身
-    { name: 'ダンベルスイング', sets: 3, weight: 12, unit: 'kg', targetReps: '12-15', rest: 60 },
-    { name: 'ダンベルアップライトロウ', sets: 3, weight: 10, unit: 'kg', targetReps: '10-12', rest: 60 },
-    { name: 'プランクウィズダンベルプル', sets: 3, weight: 8, unit: 'kg', targetReps: '8-10', rest: 90 }
+  8: [ // 腕・腹部（仕上げ）
+    { name: 'ダンベル21カール', sets: 3, weight: 20, unit: 'ポンド', targetReps: '21（下半分7回→上半分7回→フル7回）', rest: 60 },
+    { name: 'ダンベルオーバーヘッドトライセプスエクステンション', sets: 3, weight: 25, unit: 'ポンド', targetReps: '10-12', rest: 60 },
+    { name: 'ウェイテッドプランク', sets: 3, weight: 25, unit: 'ポンド（背中に載せる）', targetReps: '30-45秒', rest: 60 }
   ]
 };
+
+// Session titles for each workout
+export const SESSION_TITLES = {
+  1: '胸部 & 三頭筋',
+  2: '背中 & 二頭筋',
+  3: '脚部 & 腹部',
+  4: '肩 & 前腕',
+  5: '全身サーキット',
+  6: '胸部 & 肩（複合）',
+  7: '背中 & 脚（複合）',
+  8: '腕 & 腹部（仕上げ）'
+};
+
+// Helper function to generate initial prompt from user answers
+export function generateInitialPrompt(_userGoals: string, _userEnvironment: string): string {
+  const sessionNumber = 1;
+  const sessionTitle = SESSION_TITLES[sessionNumber];
+  const exercises = META_PROMPT_EXERCISES[sessionNumber];
+  
+  // Format exercises for the template
+  const exercisesText = exercises.map((ex, i) => 
+    `${i + 1}. **${ex.name}**
+   - ${ex.sets}セット x ${ex.targetReps}回
+   - 推奨重量: ${ex.weight}${ex.unit}
+   - セット間${ex.rest}秒休憩`
+  ).join('\n\n');
+  
+  // Prepare JSON data for metadata
+  const exercisesJSON = JSON.stringify(exercises.map(ex => ({
+    name: ex.name,
+    targetWeight: ex.weight,
+    targetReps: ex.targetReps,
+    targetSets: ex.sets,
+    lastPerformance: null
+  })), null, 2);
+  
+  const muscleBalanceJSON = JSON.stringify({
+    pushUpperBody: "normal",
+    pullUpperBody: "normal",
+    lowerBodyFront: "normal",
+    lowerBodyBack: "normal",
+    core: "normal"
+  }, null, 2);
+  
+  const recommendationsJSON = JSON.stringify([
+    "基礎筋力の構築に焦点を当てる",
+    "正しいフォームの習得を優先"
+  ], null, 2);
+  
+  // Replace placeholders in template
+  let prompt = META_PROMPT_TEMPLATE
+    .replace(/{{lastSession}}/g, '未開始')
+    .replace(/{{nextSession}}/g, `セッション${sessionNumber}（${sessionTitle}）`)
+    .replace(/{{currentSession}}/g, `セッション${sessionNumber}: ${sessionTitle}`)
+    .replace(/{{exercises}}/g, exercisesText)
+    .replace(/{{sessionNumber}}/g, sessionNumber.toString())
+    .replace(/{{sessionName}}/g, sessionTitle)
+    .replace(/{{date}}/g, new Date().toISOString().split('T')[0])
+    .replace(/{{exercisesJSON}}/g, exercisesJSON)
+    .replace(/{{muscleBalanceJSON}}/g, muscleBalanceJSON)
+    .replace(/{{recommendationsJSON}}/g, recommendationsJSON)
+    .replace(/{{nextSessionNumber}}/g, '2')
+    .replace(/{{cycleProgress}}/g, '1/8')
+    .replace(/{{pushUpperBodyStatus}}/g, '標準')
+    .replace(/{{pullUpperBodyStatus}}/g, '標準')
+    .replace(/{{lowerBodyFrontStatus}}/g, '標準')
+    .replace(/{{lowerBodyBackStatus}}/g, '標準')
+    .replace(/{{coreStatus}}/g, '標準');
+  
+  return prompt;
+}
+
+// Export type definitions for the metadata structure
+export interface ExerciseData {
+  name: string;
+  targetWeight: number;
+  targetReps: string;
+  targetSets: number;
+  lastPerformance: {
+    weight: number;
+    reps: number;
+    sets: number;
+  } | null;
+}
+
+export interface MuscleBalance {
+  pushUpperBody: 'weak' | 'normal' | 'strong';
+  pullUpperBody: 'weak' | 'normal' | 'strong';
+  lowerBodyFront: 'weak' | 'normal' | 'strong';
+  lowerBodyBack: 'weak' | 'normal' | 'strong';
+  core: 'weak' | 'normal' | 'strong';
+}
+
+export interface PromptMetadata {
+  sessionNumber: number;
+  sessionName: string;
+  date: string;
+  exercises: ExerciseData[];
+  muscleBalance: MuscleBalance;
+  recommendations: string[];
+  nextSession: number;
+  cycleProgress: string;
+}
+
+// Function to extract metadata from prompt
+export function extractMetadata(promptText: string): PromptMetadata | null {
+  const startMarker = '<!-- METADATA_START -->';
+  const endMarker = '<!-- METADATA_END -->';
+  
+  const startIndex = promptText.indexOf(startMarker);
+  const endIndex = promptText.indexOf(endMarker);
+  
+  if (startIndex === -1 || endIndex === -1) {
+    return null;
+  }
+  
+  const jsonText = promptText.substring(
+    startIndex + startMarker.length,
+    endIndex
+  ).trim();
+  
+  try {
+    return JSON.parse(jsonText);
+  } catch (error) {
+    console.error('JSON parse error:', error);
+    return null;
+  }
+}

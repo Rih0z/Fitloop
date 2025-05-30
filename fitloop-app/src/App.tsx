@@ -5,7 +5,7 @@ import type { UserProfile } from './models/user'
 import type { Context } from './models/context'
 import { validateUserProfile } from './models/user'
 import { sanitizeInput } from './utils/sanitize'
-import { META_PROMPT_EXERCISES } from './lib/metaPromptTemplate'
+import { META_PROMPT_TEMPLATE, META_PROMPT_EXERCISES, SESSION_TITLES, extractMetadata } from './lib/metaPromptTemplate'
 import './App.css'
 
 const storage = new StorageManager()
@@ -71,196 +71,85 @@ function App() {
   }
 
   const generateFullPrompt = (userProfile: UserProfile, contextData: Context) => {
+    const sessionNumber = contextData.sessionNumber
+    const sessionTitle = SESSION_TITLES[sessionNumber as keyof typeof SESSION_TITLES] || SESSION_TITLES[1]
+    const exercises = META_PROMPT_EXERCISES[sessionNumber as keyof typeof META_PROMPT_EXERCISES] || META_PROMPT_EXERCISES[1]
+    const lastSession = contextData.sessionNumber > 1 ? contextData.sessionNumber - 1 : 8
+    const lastSessionTitle = SESSION_TITLES[lastSession as keyof typeof SESSION_TITLES]
     const lastDate = new Date().toLocaleDateString('ja-JP')
     
-    const trainingHistory = contextData.performance.map((perf) => {
-      const notes = typeof perf.notes === 'string' ? perf.notes : JSON.stringify(perf.notes || {})
-      return `エクササイズ: ${perf.exerciseName} [${perf.date.toLocaleDateString('ja-JP')}]
-${notes || '- データなし'}`
-    }).join('\n\n')
+    // Format exercises for the template
+    const exercisesText = exercises.map((ex: any, i: number) => 
+      `${i + 1}. **${ex.name}**
+   - ${ex.sets}セット x ${ex.targetReps}
+   - 推奨重量: ${ex.weight}${ex.unit}
+   - セット間${ex.rest}秒休憩`
+    ).join('\n\n')
     
-    const bodyComp = '体組成データなし' // シンプル化
+    // Prepare JSON data for metadata
+    const exercisesJSON = JSON.stringify(exercises.map((ex: any) => ({
+      name: ex.name,
+      targetWeight: ex.weight,
+      targetReps: ex.targetReps,
+      targetSets: ex.sets,
+      lastPerformance: null
+    })), null, 2)
     
-    const prompt = `# 脂肪燃焼 & 理想的筋肉バランス トレーニングシステム
-
-## ユーザー情報
+    const muscleBalanceJSON = JSON.stringify({
+      pushUpperBody: "normal",
+      pullUpperBody: "normal",
+      lowerBodyFront: "normal",
+      lowerBodyBack: "normal",
+      core: "normal"
+    }, null, 2)
+    
+    const recommendationsJSON = JSON.stringify([
+      "基礎筋力の構築に焦点を当てる",
+      "正しいフォームの習得を優先"
+    ], null, 2)
+    
+    // Include user info at the beginning
+    const userInfoSection = `## ユーザー情報
 - 名前: ${userProfile.name}
 - 目標: ${userProfile.goals}
 - 環境: ${userProfile.environment}
 
-## システム概要
-
-このプロンプトは以下の機能を提供します：
-
-1. **使用重量から筋肉バランスを分析**：実際のトレーニング重量から体の筋肉バランスを推測
-2. **理想的な筋肉バランスを目指したプログラム調整**：黄金比に基づく美しい筋肉バランスの実現
-3. **柔軟なトレーニング再構成**：8パターンの基本構造を維持しつつ、個人の発達状況に合わせて調整
-4. **トレーニングサイクルの自動進行管理**：前回のセッションから次のセッションを自動表示
-
-## 最新のトレーニング記録
-
-**最後に実施したトレーニング**: セッション${contextData.sessionNumber > 1 ? contextData.sessionNumber - 1 : 8}（${lastDate}実施）
-
-**次回のトレーニング**: セッション${contextData.sessionNumber}（${getSessionTitle(contextData.sessionNumber)}）
-
-## 最新の身体測定値（${lastDate}測定）
-
-${bodyComp}
-
-## 過去のトレーニング実績データ
-
-\`\`\`
-${trainingHistory || 'トレーニング履歴なし'}
-\`\`\`
-
-## 次回のトレーニング詳細
-
-### セッション${contextData.sessionNumber}: ${getSessionTitle(contextData.sessionNumber)}
-
-**ウォームアップ (5分)**
-- 軽いジョギング (3.5マイル/h) - 3分
-- 関連部位のストレッチ - 2分
-
-**筋力トレーニング (20分)**
-${getSessionExercises(contextData.sessionNumber)}
-
-**カーディオ (30分)**
-- ${getCardioProtocol(contextData.sessionNumber)}に従って実施
-
-**ストレッチ (5分)**
-- 対象部位のストレッチ
-
-## トレーニング後の記録方法（重要）
-
-トレーニング実施後、**必ず以下のテンプレートに記入してClaudeに送信してください**：
-
-\`\`\`
-【トレーニング実施記録】
-実施日: YYYY/MM/DD
-実施セッション: [セッション番号]
-
-使用重量と回数:
-- [エクササイズ1]: [使用重量]ポンド × [実際の回数]回 × [セット数]セット
-- [エクササイズ2]: [使用重量]ポンド × [実際の回数]回 × [セット数]セット
-- [エクササイズ3]: [使用重量]ポンド × [実際の回数]回 × [セット数]セット
-
-カーディオ:
-- [プロトコルタイプ]
-- 最高速度: [マイル/h]
-- 総カロリー: [kcal]
-
-体組成:
-- 体重: [kg]
-- 体脂肪率: [%]
-- 筋肉量: [%]
-- 内臓脂肪指数: [値]
-
-主観的評価:
-- 最も効いた部位: [部位名]
-- 物足りなかった部位: [部位名]
-- 全体的な疲労度 (1-10): [数値]
-
-感想/備考:
-[自由記述]
-\`\`\`
-
-${getFullTrainingProgram()}
-
-## 理想的な筋肉バランスの指針
-
-美しい筋肉バランスは以下の比率に基づいています：
-
-1. **黄金比に基づく体型**:
-   - 肩幅：ウエスト = 1.618：1（黄金比）
-   - 胸囲：ウエスト = 1.4：1
-   - 上腕：前腕 = 1.5：1
-   - 大腿：ふくらはぎ = 1.75：1
-
-2. **筋肉群間のバランス**:
-   - 胸部：背中 = 1：1（均等な発達）
-   - 大腿四頭筋：ハムストリング = 1：1（均等な発達）
-   - プッシュ系：プル系 = 1：1（力のバランス）
-
-3. **見た目の調和**:
-   - 上半身と下半身の均衡
-   - V字型上半身（広い肩、引き締まったウエスト）
-   - 全体的な対称性
-
-## 栄養戦略の基本指針
-
-**マクロ栄養素バランス**
-- タンパク質: 体重1kgあたり2.0-2.2g
-- 炭水化物: 体重1kgあたり3-4g
-- 脂質: 体重1kgあたり1g
-
-**トレーニング前後の栄養**
-- トレーニング前: 炭水化物30-40g + タンパク質20g（1-2時間前）
-- トレーニング後: 炭水化物40-50g + タンパク質25-30g（30分以内）`
+`
+    
+    // Replace placeholders in template
+    let prompt = META_PROMPT_TEMPLATE
+      .replace(/{{lastSession}}/g, `セッション${lastSession}（${lastSessionTitle}） - ${lastDate}実施`)
+      .replace(/{{nextSession}}/g, `セッション${sessionNumber}（${sessionTitle}）`)
+      .replace(/{{currentSession}}/g, `セッション${sessionNumber}: ${sessionTitle}`)
+      .replace(/{{exercises}}/g, exercisesText)
+      .replace(/{{sessionNumber}}/g, sessionNumber.toString())
+      .replace(/{{sessionName}}/g, sessionTitle)
+      .replace(/{{date}}/g, new Date().toISOString().split('T')[0])
+      .replace(/{{exercisesJSON}}/g, exercisesJSON)
+      .replace(/{{muscleBalanceJSON}}/g, muscleBalanceJSON)
+      .replace(/{{recommendationsJSON}}/g, recommendationsJSON)
+      .replace(/{{nextSessionNumber}}/g, (sessionNumber % 8 + 1).toString())
+      .replace(/{{cycleProgress}}/g, `${sessionNumber}/8`)
+      .replace(/{{pushUpperBodyStatus}}/g, '標準')
+      .replace(/{{pullUpperBodyStatus}}/g, '標準')
+      .replace(/{{lowerBodyFrontStatus}}/g, '標準')
+      .replace(/{{lowerBodyBackStatus}}/g, '標準')
+      .replace(/{{coreStatus}}/g, '標準')
+    
+    // Insert user info after the main title
+    const titleEnd = prompt.indexOf('\n\n## 🔄')
+    prompt = prompt.slice(0, titleEnd + 2) + userInfoSection + prompt.slice(titleEnd + 2)
     
     setCurrentPrompt(prompt)
   }
   
   const getSessionTitle = (sessionNumber: number): string => {
-    const titles: Record<number, string> = {
-      1: '胸・三頭筋',
-      2: '背中・二頭筋',
-      3: '脚・コア',
-      4: '肩・前腕',
-      5: '全身サーキット',
-      6: '上半身複合',
-      7: '下半身・腹筋',
-      8: '機能的全身',
-    }
     const sessionIndex = ((sessionNumber - 1) % 8) + 1
-    return titles[sessionIndex] || titles[1]
+    return SESSION_TITLES[sessionIndex as keyof typeof SESSION_TITLES] || SESSION_TITLES[1]
   }
   
-  const getSessionExercises = (sessionNumber: number): string => {
-    const sessionIndex = ((sessionNumber - 1) % 8) + 1 as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8
-    const exercises = META_PROMPT_EXERCISES[sessionIndex]
-    return exercises.map((ex: any, idx: number) => 
-      `${idx + 1}. **${ex.name}**
-   - ${ex.sets}セット x ${ex.targetReps}
-   - 推奨重量: ${ex.weight}${ex.unit}
-   - セット間${ex.rest}秒休憩`
-    ).join('\n\n')
-  }
   
-  const getCardioProtocol = (sessionNumber: number): string => {
-    const protocols = ['標準HIITプロトコル', '中強度定常状態カーディオ', '標準HIITプロトコル', '標準HIITプロトコル', '軽めのHIITプロトコル', '標準HIITプロトコル', '中強度定常状態カーディオ', '軽めのHIITプロトコル']
-    return protocols[((sessionNumber - 1) % 8)]
-  }
   
-  const getFullTrainingProgram = (): string => {
-    return `## トレーニングセッション一覧
-
-${[1,2,3,4,5,6,7,8].map(num => {
-      const title = getSessionTitle(num)
-      return `### セッション${num}: ${title}
-
-詳細はトレーニング当日のプロンプトに含まれます。`
-    }).join('\n\n')}
-
-## カーディオプロトコル
-
-### 標準HIITプロトコル
-**合計時間: 30分**
-- ウォームアップ (3分): 3.5マイル/hから徐々に5.0マイル/hまで上げる
-- HIIT主要部分 (22分): 30秒8.5-9.0マイル/h（ダッシュ）、90秒4.5マイル/h（回復）を8-9回
-- クールダウン (5分): 4.5マイル/hから徐々に3.5マイル/hに下げる
-
-### 中強度定常状態カーディオ
-**合計時間: 30分**
-- ウォームアップ (5分): 3.5マイル/hから徐々に5.5-6.0マイル/hまで上げる
-- 主要部分 (20分): 一定ペース5.5-6.0マイル/h（会話ができる程度の強度）
-- クールダウン (5分): 5.5マイル/hから徐々に3.5マイル/hに下げる
-
-### 軽めのHIITプロトコル
-**合計時間: 30分**
-- ウォームアップ (3分): 3.5マイル/hから徐々に5.0マイル/hまで上げる
-- HIIT主要部分 (22分): 30秒7.5-8.0マイル/h（軽めダッシュ）、90秒4.5マイル/h（回復）を8-9回
-- クールダウン (5分): 4.5マイル/hから徐々に3.5マイル/hに下げる`
-  }
 
   const handleUpdateProfile = async () => {
     try {
@@ -298,40 +187,60 @@ ${[1,2,3,4,5,6,7,8].map(num => {
       setAiResponse(text)
       
       if (text && context && profile) {
-        // Claudeの結果を記録として保存
-        const newPerformance: any = {
-          date: new Date(),
-          exerciseName: `セッション${context.sessionNumber}の記録`,
-          sets: [],
-          notes: text,
-          muscleGroups: [],
+        // Check if the pasted text contains a new meta-prompt
+        const metadata = extractMetadata(text)
+        
+        if (metadata) {
+          // Claude generated a new prompt with metadata
+          setCurrentPrompt(text)
+          
+          // Update context with new session info from metadata
+          await storage.updateContext({ 
+            cycleNumber: Math.ceil(metadata.nextSession / 8), 
+            sessionNumber: metadata.nextSession,
+            performance: context.performance
+          })
+          
+          const newContext = await storage.getContext()
+          if (newContext) {
+            setContext(newContext)
+          }
+        } else {
+          // Regular training record (old behavior)
+          const newPerformance: any = {
+            date: new Date(),
+            exerciseName: `セッション${context.sessionNumber}の記録`,
+            sets: [],
+            notes: text,
+            muscleGroups: [],
+          }
+          
+          const updatedPerformance = [...context.performance, newPerformance]
+          
+          const nextSession = context.sessionNumber + 1
+          const nextCycle = nextSession > 8 ? context.cycleNumber + 1 : context.cycleNumber
+          const sessionNumber = nextSession > 8 ? 1 : nextSession
+          
+          await storage.updateContext({ 
+            cycleNumber: nextCycle, 
+            sessionNumber: sessionNumber,
+            performance: updatedPerformance
+          })
+          
+          const newContext = await storage.getContext()
+          if (newContext) {
+            setContext(newContext)
+            generateFullPrompt(profile, newContext)
+          }
         }
-        
-        const updatedPerformance = [...context.performance, newPerformance]
-        
-        const nextSession = context.sessionNumber + 1
-        const nextCycle = nextSession > 8 ? context.cycleNumber + 1 : context.cycleNumber
-        const sessionNumber = nextSession > 8 ? 1 : nextSession
-        
-        await storage.updateContext({ 
-          cycleNumber: nextCycle, 
-          sessionNumber: sessionNumber,
-          performance: updatedPerformance
-        })
         
         await storage.savePrompt({
           type: 'training',
-          content: currentPrompt,
+          content: text,
           metadata: { sessionNumber: context.sessionNumber },
           createdAt: new Date(),
           used: true,
         })
-        
-        const newContext = await storage.getContext()
-        if (newContext) {
-          setContext(newContext)
-          generateFullPrompt(profile, newContext)
-        }
       }
     } catch (err) {
       setError('クリップボードへのアクセスに失敗しました')
