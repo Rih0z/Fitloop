@@ -63,6 +63,7 @@ git add .
 git commit -m "Description of changes"
 git push
 ```
+4. **IMPORTANT**: Always output the deployment URL at the end: https://fitloop-app.pages.dev
 
 ## Important Development Notes
 
@@ -264,3 +265,8 @@ The ideal workflow uses a "meta-prompt" where:
   used: boolean
 }
 ```
+
+## Final Reminder
+**After every deployment or significant change, always provide the live URL to the user:**
+
+🌐 **FitLoop App URL**: https://fitloop-app.pages.dev
