@@ -379,7 +379,7 @@ function App() {
                     placeholder="Claudeからの結果をここに貼り付けてください..."
                     className={`w-full px-4 py-4 rounded-xl border h-[600px] text-base leading-relaxed ${
                       darkMode 
-                        ? 'bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-400' 
+                        ? 'bg-gray-800 border-gray-600 text-gray-100 placeholder-gray-300' 
                         : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500'
                     } focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all`}
                   />
@@ -422,7 +422,7 @@ function App() {
                       <h3 className={`text-2xl font-bold mb-2 ${darkMode ? 'text-white text-contrast-dark' : 'text-gray-900 text-contrast'}`}>
                         こんにちは！お名前を教えてください
                       </h3>
-                      <p className={`text-base font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                      <p className={`text-base font-medium ${darkMode ? 'text-gray-200' : 'text-gray-600'}`}>
                         あなたに合わせたプログラムを作成します
                       </p>
                     </div>
@@ -435,7 +435,7 @@ function App() {
                         maxLength={100}
                         className={`w-full px-6 py-4 text-xl font-medium rounded-xl border ${
                           darkMode 
-                            ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400' 
+                            ? 'bg-gray-800 border-gray-600 text-gray-100 placeholder-gray-300' 
                             : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
                         } focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all`}
                         placeholder="お名前を入力..."
@@ -449,7 +449,7 @@ function App() {
                       className={`w-full mt-6 py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center ${
                         formData.name
                           ? 'btn-gradient text-white hover:shadow-lg transform hover:scale-105 energy-glow'
-                          : darkMode ? 'bg-gray-800 text-gray-500' : 'bg-gray-200 text-gray-400'
+                          : darkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-200 text-gray-400'
                       }`}
                     >
                       次へ
@@ -468,7 +468,7 @@ function App() {
                       <h3 className={`text-2xl font-bold mb-2 ${darkMode ? 'text-white text-contrast-dark' : 'text-gray-900 text-contrast'}`}>
                         {formData.name}さん、目標を選んでください
                       </h3>
-                      <p className={`text-base font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                      <p className={`text-base font-medium ${darkMode ? 'text-gray-200' : 'text-gray-600'}`}>
                         複数選択できます（タップして選択）
                       </p>
                     </div>
@@ -503,7 +503,7 @@ function App() {
                           <div className={`text-base font-bold ${
                             selectedGoals.includes(goal.value)
                               ? 'text-orange-500'
-                              : darkMode ? 'text-gray-200' : 'text-gray-800'
+                              : darkMode ? 'text-gray-100' : 'text-gray-800'
                           }`}>
                             {goal.label}
                           </div>
@@ -512,7 +512,7 @@ function App() {
                     </div>
                     
                     <div className="mb-6">
-                      <label className={`block text-base font-bold mb-2 ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                      <label className={`block text-base font-bold mb-2 ${darkMode ? 'text-gray-100' : 'text-gray-700'}`}>
                         その他の目標（任意）
                       </label>
                       <input
@@ -521,7 +521,7 @@ function App() {
                         onChange={(e) => setCustomGoal(e.target.value)}
                         className={`w-full px-4 py-3 text-base font-medium rounded-xl border ${
                           darkMode 
-                            ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400' 
+                            ? 'bg-gray-800 border-gray-600 text-gray-100 placeholder-gray-300' 
                             : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
                         } focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all`}
                         placeholder="他に目標があれば入力..."
@@ -532,7 +532,7 @@ function App() {
                       <button
                         onClick={() => setProfileStep(1)}
                         className={`flex-1 py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center ${
-                          darkMode ? 'bg-gray-800 text-gray-300' : 'bg-gray-200 text-gray-700'
+                          darkMode ? 'bg-gray-700 text-gray-100 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                         }`}
                       >
                         <ArrowLeft className="mr-2 w-5 h-5" />
@@ -549,7 +549,7 @@ function App() {
                         className={`flex-1 py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center ${
                           selectedGoals.length > 0 || customGoal
                             ? 'btn-gradient text-white hover:shadow-lg transform hover:scale-105 energy-glow'
-                            : darkMode ? 'bg-gray-800 text-gray-500' : 'bg-gray-200 text-gray-400'
+                            : darkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-200 text-gray-400'
                         }`}
                       >
                         次へ
@@ -569,7 +569,7 @@ function App() {
                       <h3 className={`text-2xl font-bold mb-2 ${darkMode ? 'text-white text-contrast-dark' : 'text-gray-900 text-contrast'}`}>
                         トレーニング環境を教えてください
                       </h3>
-                      <p className={`text-base font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                      <p className={`text-base font-medium ${darkMode ? 'text-gray-200' : 'text-gray-600'}`}>
                         あなたの環境に合わせたプログラムを作成します
                       </p>
                     </div>
@@ -598,12 +598,12 @@ function App() {
                               <div className={`text-lg font-bold mb-1 ${
                                 selectedEnvironment === env.value
                                   ? 'text-blue-500'
-                                  : darkMode ? 'text-gray-100' : 'text-gray-900'
+                                  : darkMode ? 'text-gray-50' : 'text-gray-900'
                               }`}>
                                 {env.label}
                               </div>
                               <div className={`text-base font-medium ${
-                                darkMode ? 'text-gray-300' : 'text-gray-600'
+                                darkMode ? 'text-gray-200' : 'text-gray-600'
                               }`}>
                                 {env.desc}
                               </div>
@@ -614,7 +614,7 @@ function App() {
                     </div>
                     
                     <div className="mb-6">
-                      <label className={`block text-base font-bold mb-2 ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                      <label className={`block text-base font-bold mb-2 ${darkMode ? 'text-gray-100' : 'text-gray-700'}`}>
                         詳細を追加（任意）
                       </label>
                       <input
@@ -623,7 +623,7 @@ function App() {
                         onChange={(e) => setCustomEnvironment(e.target.value)}
                         className={`w-full px-4 py-3 text-base font-medium rounded-xl border ${
                           darkMode 
-                            ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400' 
+                            ? 'bg-gray-800 border-gray-600 text-gray-100 placeholder-gray-300' 
                             : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
                         } focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all`}
                         placeholder="例: 週3回ジムに通える、朝しか時間がない"
@@ -634,7 +634,7 @@ function App() {
                       <button
                         onClick={() => setProfileStep(2)}
                         className={`flex-1 py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center ${
-                          darkMode ? 'bg-gray-800 text-gray-300' : 'bg-gray-200 text-gray-700'
+                          darkMode ? 'bg-gray-700 text-gray-100 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                         }`}
                       >
                         <ArrowLeft className="mr-2 w-5 h-5" />
@@ -653,7 +653,7 @@ function App() {
                         className={`flex-1 py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center ${
                           selectedEnvironment
                             ? 'btn-achievement text-white hover:shadow-lg transform hover:scale-105 achievement-glow'
-                            : darkMode ? 'bg-gray-800 text-gray-500' : 'bg-gray-200 text-gray-400'
+                            : darkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-200 text-gray-400'
                         }`}
                       >
                         <CheckCircle2 className="mr-2 w-5 h-5" />
@@ -670,17 +670,17 @@ function App() {
                     <h3 className={`text-xl font-bold mb-2 ${darkMode ? 'text-white text-contrast-dark' : 'text-gray-900 text-contrast'}`}>
                       プロフィール設定完了！
                     </h3>
-                    <p className={`text-base font-medium mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                    <p className={`text-base font-medium mb-4 ${darkMode ? 'text-gray-200' : 'text-gray-600'}`}>
                       プロンプトタブで始めましょう
                     </p>
                     <div className="space-y-2 text-left">
-                      <p className={`text-base font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                      <p className={`text-base font-medium ${darkMode ? 'text-gray-100' : 'text-gray-700'}`}>
                         <strong>名前:</strong> {profile.name}
                       </p>
-                      <p className={`text-base font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                      <p className={`text-base font-medium ${darkMode ? 'text-gray-100' : 'text-gray-700'}`}>
                         <strong>目標:</strong> {profile.goals}
                       </p>
-                      <p className={`text-base font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                      <p className={`text-base font-medium ${darkMode ? 'text-gray-100' : 'text-gray-700'}`}>
                         <strong>環境:</strong> {profile.environment}
                       </p>
                     </div>
@@ -693,7 +693,7 @@ function App() {
                         setCustomEnvironment('')
                       }}
                       className={`mt-4 px-6 py-2 rounded-xl font-bold text-base transition-all ${
-                        darkMode ? 'bg-gray-800 text-gray-300 hover:text-gray-100' : 'bg-gray-200 text-gray-700 hover:text-gray-900'
+                        darkMode ? 'bg-gray-700 text-gray-100 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                       }`}
                     >
                       プロフィールを編集
@@ -709,10 +709,10 @@ function App() {
 
                 {context && profile && profileStep === 1 && (
                   <div className={`mt-6 p-4 rounded-xl ${darkMode ? 'neumorphism-dark' : 'neumorphism'}`}>
-                    <p className={`text-base font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <p className={`text-base font-medium ${darkMode ? 'text-gray-100' : 'text-gray-700'}`}>
                       現在のセッション: <span className="font-bold health-text text-lg">{context.sessionNumber}</span> ({getSessionTitle(context.sessionNumber)})
                     </p>
-                    <p className={`text-base font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <p className={`text-base font-medium ${darkMode ? 'text-gray-100' : 'text-gray-700'}`}>
                       サイクル: <span className="font-bold health-text text-lg">{context.cycleNumber}</span>
                     </p>
                   </div>
@@ -732,7 +732,7 @@ function App() {
                   <h3 className={`text-xl font-bold mb-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                     <span className="energy-text">使い方</span>
                   </h3>
-                  <ol className={`list-decimal list-inside space-y-3 text-base font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                  <ol className={`list-decimal list-inside space-y-3 text-base font-medium ${darkMode ? 'text-gray-100' : 'text-gray-700'}`}>
                     <li className="hover:translate-x-1 transition-transform">「プロフィール」タブで情報を入力</li>
                     <li className="hover:translate-x-1 transition-transform">「プロンプト」タブでプロンプトをコピー</li>
                     <li className="hover:translate-x-1 transition-transform">Claude AIに貼り付けて実行</li>
@@ -745,7 +745,7 @@ function App() {
                   <h3 className={`text-xl font-bold mb-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                     <span className="health-text">トレーニングサイクル</span>
                   </h3>
-                  <p className={`text-base font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                  <p className={`text-base font-medium ${darkMode ? 'text-gray-100' : 'text-gray-700'}`}>
                     <span className="font-bold achievement-text text-lg streak-glow">8セッション</span>で<span className="font-bold health-text text-lg">1サイクル</span>です。サイクル完了後、トレーニングメニューが自動的に再構成されます。
                   </p>
                 </div>
