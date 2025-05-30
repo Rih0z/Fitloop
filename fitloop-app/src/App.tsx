@@ -499,7 +499,14 @@ function App() {
                                 : 'border-gray-300 hover:border-gray-400'
                           }`}
                         >
-                          <div className="text-3xl mb-2">{goal.icon}</div>
+                          <div className="relative">
+                            <div className="text-3xl mb-2">{goal.icon}</div>
+                            {selectedGoals.includes(goal.value) && (
+                              <div className="absolute -top-1 -right-1 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
+                                <Check className="w-4 h-4 text-white" />
+                              </div>
+                            )}
+                          </div>
                           <div className={`text-base font-bold ${
                             selectedGoals.includes(goal.value)
                               ? 'text-orange-500'
@@ -592,9 +599,9 @@ function App() {
                                 : 'border-gray-300 hover:border-gray-400'
                           }`}
                         >
-                          <div className="flex items-start">
+                          <div className="flex items-start relative">
                             <div className="text-2xl mr-4">{env.icon}</div>
-                            <div>
+                            <div className="flex-1">
                               <div className={`text-lg font-bold mb-1 ${
                                 selectedEnvironment === env.value
                                   ? 'text-blue-500'
@@ -608,6 +615,11 @@ function App() {
                                 {env.desc}
                               </div>
                             </div>
+                            {selectedEnvironment === env.value && (
+                              <div className="absolute top-0 right-0 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                                <Check className="w-4 h-4 text-white" />
+                              </div>
+                            )}
                           </div>
                         </button>
                       ))}
@@ -724,7 +736,7 @@ function App() {
           {activeTab === 'settings' && (
             <div className={`max-w-2xl mx-auto ${darkMode ? 'glass-effect-dark' : 'glass-effect'} rounded-2xl p-6 card-hover fade-in`}>
               <h2 className={`text-3xl font-bold mb-6 ${darkMode ? 'text-white text-contrast-dark' : 'text-gray-900 text-contrast'}`}>
-                設定
+                使い方
               </h2>
               
               <div className="space-y-4">
@@ -791,7 +803,7 @@ function App() {
                 }`}
               >
                 <Settings size={24} />
-                <span className="text-sm font-bold">設定</span>
+                <span className="text-sm font-bold">使い方</span>
               </button>
             </div>
           </div>
