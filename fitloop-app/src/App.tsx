@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Copy, Check, Brain, Dumbbell, Moon, Sun, ClipboardPaste, User, FileText, Settings, ChevronRight, Target, Home, Sparkles, ArrowLeft, CheckCircle2 } from 'lucide-react'
+import { Copy, Check, Brain, Dumbbell, Moon, Sun, ClipboardPaste, User, FileText, Settings, ChevronRight, Target, Home, Sparkles, ArrowLeft, CheckCircle2, BookOpen, Star, Search, Filter } from 'lucide-react'
 import { StorageManager } from './lib/db'
 import type { UserProfile } from './models/user'
 import type { Context } from './models/context'
+import type { SavedPrompt } from './models/promptCollection'
 import { validateUserProfile } from './models/user'
 import { sanitizeInput } from './utils/sanitize'
 import { META_PROMPT_TEMPLATE, META_PROMPT_EXERCISES, SESSION_TITLES, extractMetadata } from './lib/metaPromptTemplate'
@@ -10,7 +11,7 @@ import './App.css'
 
 const storage = new StorageManager()
 
-type TabType = 'prompt' | 'profile' | 'settings'
+type TabType = 'prompt' | 'profile' | 'library' | 'settings'
 
 function App() {
   const [profile, setProfile] = useState<UserProfile | null>(null)
@@ -32,6 +33,12 @@ function App() {
   const [selectedEnvironment, setSelectedEnvironment] = useState<string>('')
   const [customGoal, setCustomGoal] = useState('')
   const [customEnvironment, setCustomEnvironment] = useState('')
+  
+  // プロンプトライブラリ関連
+  const [savedPrompts, setSavedPrompts] = useState<SavedPrompt[]>([])
+  const [selectedCategory, setSelectedCategory] = useState<string>('all')
+  const [showMetaPromptsOnly, setShowMetaPromptsOnly] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
 
   // 初期データ読み込み
   useEffect(() => {
@@ -70,10 +77,23 @@ function App() {
       if (savedProfile && savedContext) {
         generateFullPrompt(savedProfile, savedContext)
       }
+      
+      // 初期データとプロンプトライブラリを読み込み
+      await storage.initializeDefaultPrompts()
+      await loadSavedPrompts()
     } catch (error) {
       setError('データの読み込みに失敗しました')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const loadSavedPrompts = async () => {
+    try {
+      const prompts = await storage.getSavedPrompts()
+      setSavedPrompts(prompts)
+    } catch (error) {
+      console.error('Failed to load saved prompts:', error)
     }
   }
 
@@ -202,6 +222,16 @@ function App() {
   const handleCopyPrompt = async () => {
     await navigator.clipboard.writeText(currentPrompt)
     setCopiedPrompt(true)
+    
+    // 現在のプロンプトを前回のプロンプトとして保存
+    if (currentPrompt && context && profile) {
+      await storage.saveCurrentPromptAsLast(
+        currentPrompt,
+        `${profile.name}さんのセッション${context.sessionNumber}`
+      )
+      await loadSavedPrompts() // リストを更新
+    }
+    
     setTimeout(() => setCopiedPrompt(false), 2000)
   }
 
@@ -274,6 +304,49 @@ function App() {
   const toggleDarkMode = () => {
     setDarkMode(!darkMode)
     localStorage.setItem('darkMode', String(!darkMode))
+  }
+
+  // プロンプトライブラリヘルパー関数
+  const handleCopyLibraryPrompt = async (prompt: SavedPrompt) => {
+    await navigator.clipboard.writeText(prompt.content)
+    await storage.updatePromptUsage(prompt.id!)
+    await loadSavedPrompts()
+    setCopiedPrompt(true)
+    setTimeout(() => setCopiedPrompt(false), 2000)
+  }
+
+  const filteredPrompts = savedPrompts.filter(prompt => {
+    const matchesSearch = searchQuery === '' || 
+      prompt.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      prompt.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      prompt.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+    
+    const matchesCategory = selectedCategory === 'all' || prompt.category === selectedCategory
+    const matchesMetaFilter = !showMetaPromptsOnly || prompt.isMetaPrompt
+    
+    return matchesSearch && matchesCategory && matchesMetaFilter
+  })
+
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'training': return '💪'
+      case 'nutrition': return '🥗'
+      case 'analysis': return '📊'
+      case 'planning': return '📋'
+      case 'custom': return '🎯'
+      default: return '📝'
+    }
+  }
+
+  const getCategoryName = (category: string) => {
+    switch (category) {
+      case 'training': return '筋トレ'
+      case 'nutrition': return '栄養'
+      case 'analysis': return '分析'
+      case 'planning': return '計画'
+      case 'custom': return 'カスタム'
+      default: return 'その他'
+    }
   }
 
   if (loading) {
@@ -733,6 +806,152 @@ function App() {
             </div>
           )}
 
+          {activeTab === 'library' && (
+            <div className="max-w-6xl mx-auto space-y-6">
+              <div className={`${darkMode ? 'glass-effect-dark' : 'glass-effect'} rounded-2xl p-6 card-hover fade-in`}>
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className={`text-3xl font-bold ${darkMode ? 'text-white text-contrast-dark' : 'text-gray-900 text-contrast'}`}>
+                    <BookOpen className="inline w-8 h-8 mr-3 text-orange-500 energy-glow" />
+                    プロンプトライブラリ
+                  </h2>
+                  <div className="flex items-center space-x-4">
+                    <button
+                      onClick={() => setShowMetaPromptsOnly(!showMetaPromptsOnly)}
+                      className={`px-4 py-2 rounded-xl font-bold text-base transition-all flex items-center ${
+                        showMetaPromptsOnly
+                          ? 'btn-gradient text-white energy-glow'
+                          : darkMode ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      }`}
+                    >
+                      <Star className="w-4 h-4 mr-2" />
+                      メタプロンプトのみ
+                    </button>
+                  </div>
+                </div>
+
+                {/* フィルター & 検索 */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div className="modern-input">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="プロンプトを検索..."
+                        className={`w-full pl-12 pr-4 py-3 text-base font-medium rounded-xl border ${
+                          darkMode 
+                            ? 'bg-gray-800 border-gray-600 text-gray-100 placeholder-gray-300' 
+                            : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                        } focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all`}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="modern-input">
+                    <div className="relative">
+                      <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <select
+                        value={selectedCategory}
+                        onChange={(e) => setSelectedCategory(e.target.value)}
+                        className={`w-full pl-12 pr-4 py-3 text-base font-medium rounded-xl border ${
+                          darkMode 
+                            ? 'bg-gray-800 border-gray-600 text-gray-100' 
+                            : 'bg-white border-gray-300 text-gray-900'
+                        } focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all`}
+                      >
+                        <option value="all">全カテゴリ</option>
+                        <option value="training">筋トレ</option>
+                        <option value="nutrition">栄養</option>
+                        <option value="analysis">分析</option>
+                        <option value="planning">計画</option>
+                        <option value="custom">カスタム</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* プロンプトリスト */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  {filteredPrompts.length === 0 ? (
+                    <div className="col-span-full text-center py-12">
+                      <div className={`text-6xl mb-4 ${darkMode ? 'text-gray-600' : 'text-gray-400'}`}>📝</div>
+                      <p className={`text-lg font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                        プロンプトが見つかりませんでした
+                      </p>
+                    </div>
+                  ) : (
+                    filteredPrompts.map((prompt) => (
+                      <div
+                        key={prompt.id}
+                        className={`${darkMode ? 'neumorphism-dark' : 'neumorphism'} rounded-xl p-4 card-hover relative group`}
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-2xl">{getCategoryIcon(prompt.category)}</span>
+                            {prompt.isMetaPrompt && (
+                              <div className="px-2 py-1 bg-purple-500 text-white text-xs font-bold rounded-full">
+                                META
+                              </div>
+                            )}
+                            <span className={`px-2 py-1 text-xs font-bold rounded-full ${
+                              darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'
+                            }`}>
+                              {getCategoryName(prompt.category)}
+                            </span>
+                          </div>
+                          <div className="flex items-center space-x-1 text-sm text-gray-500">
+                            <span>{prompt.usageCount}</span>
+                            <span>回使用</span>
+                          </div>
+                        </div>
+                        
+                        <h3 className={`text-lg font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                          {prompt.title}
+                        </h3>
+                        
+                        {prompt.description && (
+                          <p className={`text-base font-medium mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                            {prompt.description}
+                          </p>
+                        )}
+                        
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          {prompt.tags.map((tag, index) => (
+                            <span
+                              key={index}
+                              className={`px-2 py-1 text-xs rounded-full ${
+                                darkMode ? 'bg-gray-800 text-gray-400' : 'bg-gray-100 text-gray-600'
+                              }`}
+                            >
+                              #{tag}
+                            </span>
+                          ))}
+                        </div>
+                        
+                        <div className="flex justify-between items-center">
+                          <div className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                            {prompt.lastUsed 
+                              ? `最終使用: ${new Date(prompt.lastUsed).toLocaleDateString('ja-JP')}`
+                              : '未使用'
+                            }
+                          </div>
+                          <button
+                            onClick={() => handleCopyLibraryPrompt(prompt)}
+                            className="px-4 py-2 btn-gradient text-white rounded-xl font-bold text-sm transition-all energy-glow hover:scale-105"
+                          >
+                            <Copy className="inline w-4 h-4 mr-2" />
+                            コピー
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {activeTab === 'settings' && (
             <div className={`max-w-2xl mx-auto ${darkMode ? 'glass-effect-dark' : 'glass-effect'} rounded-2xl p-6 card-hover fade-in`}>
               <h2 className={`text-3xl font-bold mb-6 ${darkMode ? 'text-white text-contrast-dark' : 'text-gray-900 text-contrast'}`}>
@@ -792,6 +1011,18 @@ function App() {
               >
                 <User size={24} />
                 <span className="text-sm font-bold">プロフィール</span>
+              </button>
+              
+              <button
+                onClick={() => setActiveTab('library')}
+                className={`flex-1 py-3 flex flex-col items-center gap-1 transition-colors ${
+                  activeTab === 'library' 
+                    ? 'text-orange-500 energy-glow' 
+                    : darkMode ? 'text-gray-400' : 'text-gray-600'
+                }`}
+              >
+                <BookOpen size={24} />
+                <span className="text-sm font-bold">ライブラリ</span>
               </button>
               
               <button
