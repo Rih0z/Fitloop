@@ -1,0 +1,16 @@
+{
+  "name": "FitLoop - AI筋トレサポート",
+  "short_name": "FitLoop",
+  "description": "プロンプトがプロンプトを生み出すAI筋トレアプリ",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#2563eb",
+  "background_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
