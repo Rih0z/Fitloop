@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Copy, Check, Brain, Dumbbell, Moon, Sun, ClipboardPaste, User, FileText, Settings } from 'lucide-react'
+import { Copy, Check, Brain, Dumbbell, Moon, Sun, ClipboardPaste, User, FileText, Settings, ChevronRight, Target, Home, Sparkles, ArrowLeft, CheckCircle2 } from 'lucide-react'
 import { StorageManager } from './lib/db'
 import type { UserProfile } from './models/user'
 import type { Context } from './models/context'
@@ -27,6 +27,11 @@ function App() {
     goals: '',
     environment: ''
   })
+  const [profileStep, setProfileStep] = useState(1)
+  const [selectedGoals, setSelectedGoals] = useState<string[]>([])
+  const [selectedEnvironment, setSelectedEnvironment] = useState<string>('')
+  const [customGoal, setCustomGoal] = useState('')
+  const [customEnvironment, setCustomEnvironment] = useState('')
 
   // 初期データ読み込み
   useEffect(() => {
@@ -50,6 +55,8 @@ function App() {
           goals: savedProfile.goals,
           environment: savedProfile.environment
         })
+        // If profile exists, show completion state
+        setProfileStep(1)
       }
       
       if (savedContext) {
@@ -151,13 +158,14 @@ function App() {
   
   
 
-  const handleUpdateProfile = async () => {
+  const handleUpdateProfile = async (customFormData?: typeof formData) => {
     try {
+      const dataToUse = customFormData || formData
       const updatedProfile: UserProfile = {
         id: profile?.id,
-        name: sanitizeInput(formData.name),
-        goals: sanitizeInput(formData.goals),
-        environment: sanitizeInput(formData.environment),
+        name: sanitizeInput(dataToUse.name),
+        goals: sanitizeInput(dataToUse.goals),
+        environment: sanitizeInput(dataToUse.environment),
         preferences: profile?.preferences || {
           intensity: 'medium',
           frequency: 3,
@@ -185,6 +193,7 @@ function App() {
       
       setError(null)
       setActiveTab('prompt') // プロンプトタブに自動で切り替え
+      setProfileStep(1) // Reset to completion state
     } catch (error: any) {
       setError(error.message || 'プロフィール更新に失敗しました')
     }
@@ -381,70 +390,316 @@ function App() {
 
           {activeTab === 'profile' && (
             <div className={`max-w-2xl mx-auto ${darkMode ? 'glass-effect-dark' : 'glass-effect'} rounded-2xl p-6 card-hover fade-in`}>
-              <h2 className={`text-2xl font-bold mb-6 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                プロフィール設定
-              </h2>
+              {/* Progress Indicator */}
+              <div className="mb-8">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                    <Sparkles className="inline w-6 h-6 mr-2 text-purple-600" />
+                    フィットネスの旅を始めよう！
+                  </h2>
+                  <div className="flex items-center space-x-2">
+                    <div className={`w-8 h-2 rounded-full transition-all ${
+                      profileStep >= 1 ? 'bg-purple-600' : darkMode ? 'bg-gray-700' : 'bg-gray-300'
+                    }`} />
+                    <div className={`w-8 h-2 rounded-full transition-all ${
+                      profileStep >= 2 ? 'bg-purple-600' : darkMode ? 'bg-gray-700' : 'bg-gray-300'
+                    }`} />
+                    <div className={`w-8 h-2 rounded-full transition-all ${
+                      profileStep >= 3 ? 'bg-purple-600' : darkMode ? 'bg-gray-700' : 'bg-gray-300'
+                    }`} />
+                  </div>
+                </div>
+              </div>
               
               <div className="space-y-6">
-                <div>
-                  <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                    お名前
-                  </label>
-                  <div className="modern-input">
-                    <input
-                      type="text"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      maxLength={100}
-                      className={`w-full px-4 py-3 rounded-xl border ${
-                        darkMode 
-                          ? 'bg-gray-800 border-gray-700 text-white' 
-                          : 'bg-white border-gray-300 text-gray-900'
-                      } focus:outline-none focus:ring-2 focus:ring-purple-600 transition-all`}
-                      placeholder="山田太郎"
-                    />
+                {/* Step 1: Name */}
+                {profileStep === 1 && (
+                  <div className="fade-in">
+                    <div className="text-center mb-8">
+                      <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center floating">
+                        <User className="w-10 h-10 text-white" />
+                      </div>
+                      <h3 className={`text-xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                        こんにちは！お名前を教えてください
+                      </h3>
+                      <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                        あなたに合わせたプログラムを作成します
+                      </p>
+                    </div>
+                    
+                    <div className="modern-input">
+                      <input
+                        type="text"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        maxLength={100}
+                        className={`w-full px-6 py-4 text-lg rounded-xl border ${
+                          darkMode 
+                            ? 'bg-gray-800 border-gray-700 text-white' 
+                            : 'bg-white border-gray-300 text-gray-900'
+                        } focus:outline-none focus:ring-2 focus:ring-purple-600 transition-all`}
+                        placeholder="お名前を入力..."
+                        autoFocus
+                      />
+                    </div>
+                    
+                    <button
+                      onClick={() => formData.name && setProfileStep(2)}
+                      disabled={!formData.name}
+                      className={`w-full mt-6 py-4 rounded-xl font-bold transition-all flex items-center justify-center ${
+                        formData.name
+                          ? 'btn-gradient text-white hover:shadow-lg transform hover:scale-105'
+                          : darkMode ? 'bg-gray-800 text-gray-500' : 'bg-gray-200 text-gray-400'
+                      }`}
+                    >
+                      次へ
+                      <ChevronRight className="ml-2 w-5 h-5" />
+                    </button>
                   </div>
-                </div>
+                )}
 
-                <div>
-                  <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                    あなたの目的は？
-                  </label>
-                  <div className="modern-input">
-                    <textarea
-                      value={formData.goals}
-                      onChange={(e) => setFormData({ ...formData, goals: e.target.value })}
-                      maxLength={500}
-                      className={`w-full px-4 py-3 rounded-xl border ${
-                        darkMode 
-                          ? 'bg-gray-800 border-gray-700 text-white' 
-                          : 'bg-white border-gray-300 text-gray-900'
-                      } focus:outline-none focus:ring-2 focus:ring-purple-600 transition-all`}
-                      rows={4}
-                      placeholder="例: モテたい、健康になりたい、筋肉を大きくしたい"
-                    />
+                {/* Step 2: Goals */}
+                {profileStep === 2 && (
+                  <div className="fade-in">
+                    <div className="text-center mb-8">
+                      <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center floating">
+                        <Target className="w-10 h-10 text-white" />
+                      </div>
+                      <h3 className={`text-xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                        {formData.name}さん、目標を選んでください
+                      </h3>
+                      <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                        複数選択できます（タップして選択）
+                      </p>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                      {[
+                        { icon: '💪', label: '筋肉をつけたい', value: '筋肉を大きくしたい' },
+                        { icon: '🏃', label: '体力をつけたい', value: '体力・持久力向上' },
+                        { icon: '❤️', label: '健康になりたい', value: '健康維持・改善' },
+                        { icon: '✨', label: 'モテたい', value: '見た目を良くしたい' },
+                        { icon: '🎯', label: '痩せたい', value: 'ダイエット・減量' },
+                        { icon: '🏆', label: 'スポーツ向上', value: 'スポーツパフォーマンス向上' }
+                      ].map((goal) => (
+                        <button
+                          key={goal.value}
+                          onClick={() => {
+                            if (selectedGoals.includes(goal.value)) {
+                              setSelectedGoals(selectedGoals.filter(g => g !== goal.value))
+                            } else {
+                              setSelectedGoals([...selectedGoals, goal.value])
+                            }
+                          }}
+                          className={`p-4 rounded-xl border-2 transition-all transform hover:scale-105 ${
+                            selectedGoals.includes(goal.value)
+                              ? 'border-purple-600 bg-purple-600/10'
+                              : darkMode 
+                                ? 'border-gray-700 hover:border-gray-600' 
+                                : 'border-gray-300 hover:border-gray-400'
+                          }`}
+                        >
+                          <div className="text-3xl mb-2">{goal.icon}</div>
+                          <div className={`text-sm font-medium ${
+                            selectedGoals.includes(goal.value)
+                              ? 'text-purple-600'
+                              : darkMode ? 'text-gray-300' : 'text-gray-700'
+                          }`}>
+                            {goal.label}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                    
+                    <div className="mb-6">
+                      <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        その他の目標（任意）
+                      </label>
+                      <input
+                        type="text"
+                        value={customGoal}
+                        onChange={(e) => setCustomGoal(e.target.value)}
+                        className={`w-full px-4 py-3 rounded-xl border ${
+                          darkMode 
+                            ? 'bg-gray-800 border-gray-700 text-white' 
+                            : 'bg-white border-gray-300 text-gray-900'
+                        } focus:outline-none focus:ring-2 focus:ring-purple-600 transition-all`}
+                        placeholder="他に目標があれば入力..."
+                      />
+                    </div>
+                    
+                    <div className="flex space-x-4">
+                      <button
+                        onClick={() => setProfileStep(1)}
+                        className={`flex-1 py-4 rounded-xl font-bold transition-all flex items-center justify-center ${
+                          darkMode ? 'bg-gray-800 text-gray-300' : 'bg-gray-200 text-gray-700'
+                        }`}
+                      >
+                        <ArrowLeft className="mr-2 w-5 h-5" />
+                        戻る
+                      </button>
+                      <button
+                        onClick={() => {
+                          const goals = [...selectedGoals]
+                          if (customGoal) goals.push(customGoal)
+                          setFormData({ ...formData, goals: goals.join('、') })
+                          setProfileStep(3)
+                        }}
+                        disabled={selectedGoals.length === 0 && !customGoal}
+                        className={`flex-1 py-4 rounded-xl font-bold transition-all flex items-center justify-center ${
+                          selectedGoals.length > 0 || customGoal
+                            ? 'btn-gradient text-white hover:shadow-lg transform hover:scale-105'
+                            : darkMode ? 'bg-gray-800 text-gray-500' : 'bg-gray-200 text-gray-400'
+                        }`}
+                      >
+                        次へ
+                        <ChevronRight className="ml-2 w-5 h-5" />
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
 
-                <div>
-                  <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                    トレーニング環境は？
-                  </label>
-                  <div className="modern-input">
-                    <textarea
-                      value={formData.environment}
-                      onChange={(e) => setFormData({ ...formData, environment: e.target.value })}
-                      maxLength={500}
-                      className={`w-full px-4 py-3 rounded-xl border ${
-                        darkMode 
-                          ? 'bg-gray-800 border-gray-700 text-white' 
-                          : 'bg-white border-gray-300 text-gray-900'
-                      } focus:outline-none focus:ring-2 focus:ring-purple-600 transition-all`}
-                      rows={4}
-                      placeholder="例: ジムに通っている、ダンベルとベンチがある"
-                    />
+                {/* Step 3: Environment */}
+                {profileStep === 3 && (
+                  <div className="fade-in">
+                    <div className="text-center mb-8">
+                      <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center floating">
+                        <Home className="w-10 h-10 text-white" />
+                      </div>
+                      <h3 className={`text-xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                        トレーニング環境を教えてください
+                      </h3>
+                      <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                        あなたの環境に合わせたプログラムを作成します
+                      </p>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 gap-4 mb-6">
+                      {[
+                        { icon: '🏋️', label: 'ジムに通っている', desc: 'フル装備のジムが利用可能', value: 'ジムに通っている（フル装備）' },
+                        { icon: '🏠', label: '自宅でダンベル', desc: 'ダンベルとベンチがある', value: '自宅トレーニング（ダンベルとベンチ）' },
+                        { icon: '💪', label: '自重トレーニング', desc: '器具なしでトレーニング', value: '自重トレーニングのみ' },
+                        { icon: '🎯', label: 'ミニマル装備', desc: '最小限の器具', value: 'ミニマル装備（抵抗バンドなど）' }
+                      ].map((env) => (
+                        <button
+                          key={env.value}
+                          onClick={() => setSelectedEnvironment(env.value)}
+                          className={`p-4 rounded-xl border-2 transition-all transform hover:scale-105 text-left ${
+                            selectedEnvironment === env.value
+                              ? 'border-purple-600 bg-purple-600/10'
+                              : darkMode 
+                                ? 'border-gray-700 hover:border-gray-600' 
+                                : 'border-gray-300 hover:border-gray-400'
+                          }`}
+                        >
+                          <div className="flex items-start">
+                            <div className="text-2xl mr-4">{env.icon}</div>
+                            <div>
+                              <div className={`font-medium mb-1 ${
+                                selectedEnvironment === env.value
+                                  ? 'text-purple-600'
+                                  : darkMode ? 'text-gray-200' : 'text-gray-800'
+                              }`}>
+                                {env.label}
+                              </div>
+                              <div className={`text-sm ${
+                                darkMode ? 'text-gray-400' : 'text-gray-600'
+                              }`}>
+                                {env.desc}
+                              </div>
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                    
+                    <div className="mb-6">
+                      <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        詳細を追加（任意）
+                      </label>
+                      <input
+                        type="text"
+                        value={customEnvironment}
+                        onChange={(e) => setCustomEnvironment(e.target.value)}
+                        className={`w-full px-4 py-3 rounded-xl border ${
+                          darkMode 
+                            ? 'bg-gray-800 border-gray-700 text-white' 
+                            : 'bg-white border-gray-300 text-gray-900'
+                        } focus:outline-none focus:ring-2 focus:ring-purple-600 transition-all`}
+                        placeholder="例: 週3回ジムに通える、朝しか時間がない"
+                      />
+                    </div>
+                    
+                    <div className="flex space-x-4">
+                      <button
+                        onClick={() => setProfileStep(2)}
+                        className={`flex-1 py-4 rounded-xl font-bold transition-all flex items-center justify-center ${
+                          darkMode ? 'bg-gray-800 text-gray-300' : 'bg-gray-200 text-gray-700'
+                        }`}
+                      >
+                        <ArrowLeft className="mr-2 w-5 h-5" />
+                        戻る
+                      </button>
+                      <button
+                        onClick={() => {
+                          const environment = customEnvironment 
+                            ? `${selectedEnvironment}、${customEnvironment}`
+                            : selectedEnvironment
+                          const updatedFormData = { ...formData, environment }
+                          setFormData(updatedFormData)
+                          handleUpdateProfile(updatedFormData)
+                        }}
+                        disabled={!selectedEnvironment}
+                        className={`flex-1 py-4 rounded-xl font-bold transition-all flex items-center justify-center ${
+                          selectedEnvironment
+                            ? 'btn-gradient text-white hover:shadow-lg transform hover:scale-105'
+                            : darkMode ? 'bg-gray-800 text-gray-500' : 'bg-gray-200 text-gray-400'
+                        }`}
+                      >
+                        <CheckCircle2 className="mr-2 w-5 h-5" />
+                        始める！
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {/* Completion State */}
+                {profile && profileStep === 1 && (
+                  <div className={`mt-6 p-6 rounded-xl ${darkMode ? 'neumorphism-dark' : 'neumorphism'} text-center`}>
+                    <CheckCircle2 className="w-12 h-12 mx-auto mb-4 text-green-500" />
+                    <h3 className={`text-lg font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                      プロフィール設定完了！
+                    </h3>
+                    <p className={`text-sm mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      プロンプトタブで始めましょう
+                    </p>
+                    <div className="space-y-2 text-left">
+                      <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        <strong>名前:</strong> {profile.name}
+                      </p>
+                      <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        <strong>目標:</strong> {profile.goals}
+                      </p>
+                      <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        <strong>環境:</strong> {profile.environment}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setProfileStep(1)
+                        setSelectedGoals([])
+                        setSelectedEnvironment('')
+                        setCustomGoal('')
+                        setCustomEnvironment('')
+                      }}
+                      className={`mt-4 px-6 py-2 rounded-xl transition-all ${
+                        darkMode ? 'bg-gray-800 text-gray-300' : 'bg-gray-200 text-gray-700'
+                      }`}
+                    >
+                      プロフィールを編集
+                    </button>
+                  </div>
+                )}
 
                 {error && (
                   <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-red-500 text-sm">
@@ -452,14 +707,7 @@ function App() {
                   </div>
                 )}
 
-                <button
-                  onClick={handleUpdateProfile}
-                  className="w-full py-4 btn-gradient text-white font-bold rounded-xl hover:shadow-lg transform transition-all duration-300"
-                >
-                  保存してプロンプトを更新
-                </button>
-
-                {context && (
+                {context && profile && profileStep === 1 && (
                   <div className={`mt-6 p-4 rounded-xl ${darkMode ? 'neumorphism-dark' : 'neumorphism'}`}>
                     <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                       現在のセッション: <span className="font-bold gradient-text">{context.sessionNumber}</span> ({getSessionTitle(context.sessionNumber)})

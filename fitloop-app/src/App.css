@@ -245,3 +245,62 @@
   background-size: 200% 100%;
   animation: skeleton 1.5s ease-in-out infinite;
 }
+
+/* Profile setup animations */
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.bounce-in {
+  animation: bounceIn 0.6s ease-out;
+}
+
+/* Goal and environment card animations */
+@keyframes cardFlip {
+  0% {
+    transform: rotateY(0deg);
+  }
+  100% {
+    transform: rotateY(360deg);
+  }
+}
+
+.goal-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+}
+
+.goal-card:hover {
+  transform: translateY(-5px) scale(1.05);
+}
+
+.goal-card.selected {
+  animation: pulse 0.5s ease-out;
+}
+
+/* Progress indicator animation */
+@keyframes progressFill {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.progress-fill {
+  animation: progressFill 0.5s ease-out forwards;
+}
