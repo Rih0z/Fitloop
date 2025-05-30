@@ -130,6 +130,21 @@ npm run test:coverage
 ## Contact
 For questions about the codebase, refer to this document first. The app is designed to be self-contained with minimal external dependencies.
 
+## Important Development Guidelines
+
+### Deployment Checklist
+- 作業が完了したらgithubに追加すること
+- 作業が完了したらClaude環境でビルドしデプロイすること
+- githubへのプッシュ前にセキュリティ上の問題がないか確認すること
+
+### Security Verification
+Before pushing to GitHub:
+1. Check for exposed API keys or secrets
+2. Verify all user inputs are sanitized
+3. Ensure no sensitive data in console logs
+4. Review environment variables usage
+5. Confirm no hardcoded credentials
+
 ## Prompt Template Structure
 
 The app generates training prompts based on user profile and current session. The prompt includes:
