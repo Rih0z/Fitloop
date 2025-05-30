@@ -154,22 +154,37 @@ function App() {
   const handleUpdateProfile = async () => {
     try {
       const updatedProfile: UserProfile = {
-        ...profile,
+        id: profile?.id,
         name: sanitizeInput(formData.name),
         goals: sanitizeInput(formData.goals),
         environment: sanitizeInput(formData.environment),
+        preferences: profile?.preferences || {
+          intensity: 'medium',
+          frequency: 3,
+          timeAvailable: 60,
+        },
+        createdAt: profile?.createdAt || new Date(),
         updatedAt: new Date(),
-      } as UserProfile
+      }
 
       validateUserProfile(updatedProfile)
       await storage.saveProfile(updatedProfile)
       setProfile(updatedProfile)
       
-      if (context) {
+      // 初回の場合はコンテキストも作成
+      if (!context) {
+        await storage.updateContext({ cycleNumber: 1, sessionNumber: 1 })
+        const newContext = await storage.getContext()
+        setContext(newContext)
+        if (newContext) {
+          generateFullPrompt(updatedProfile, newContext)
+        }
+      } else {
         generateFullPrompt(updatedProfile, context)
       }
       
       setError(null)
+      setActiveTab('prompt') // プロンプトタブに自動で切り替え
     } catch (error: any) {
       setError(error.message || 'プロフィール更新に失敗しました')
     }
