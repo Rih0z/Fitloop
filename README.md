@@ -1,4 +1,6 @@
-# 🔄 **FitLoop** - プロンプトがプロンプトを生み出すAI筋トレアプリ企画書
+# 🔄 **FitLoop** - プロンプトがプロンプトを生み出すAI筋トレアプリ
+
+🌐 **Live App**: https://c33c05e5.fitloop-app.pages.dev
 
 ## 1. アプリ概要
 

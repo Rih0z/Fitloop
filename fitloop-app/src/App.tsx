@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Copy, Check, Brain, Dumbbell, Moon, Sun, ClipboardPaste, User, FileText, Settings, ChevronRight, Target, Home, Sparkles, ArrowLeft, CheckCircle2, BookOpen, Star, Search, Filter } from 'lucide-react'
+import { Copy, Check, Moon, Sun, ClipboardPaste, User, FileText, Settings, ChevronRight, ArrowLeft, CheckCircle2, BookOpen, Star, Search, Filter, Target, Home } from 'lucide-react'
 import { StorageManager } from './lib/db'
 import type { UserProfile } from './models/user'
 import type { Context } from './models/context'
@@ -7,6 +7,8 @@ import type { SavedPrompt } from './models/promptCollection'
 import { validateUserProfile } from './models/user'
 import { sanitizeInput } from './utils/sanitize'
 import { META_PROMPT_TEMPLATE, META_PROMPT_EXERCISES, SESSION_TITLES, extractMetadata } from './lib/metaPromptTemplate'
+import { getGoalIcon, getEnvironmentIcon, getCategoryIcon, getCategoryName } from './utils/iconMappings'
+import { AIAssistantIcon, TrainingIcon, CustomIcon } from './components/icons/CustomIcons'
 import './App.css'
 
 const storage = new StorageManager()
@@ -327,27 +329,6 @@ function App() {
     return matchesSearch && matchesCategory && matchesMetaFilter
   })
 
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case 'training': return '💪'
-      case 'nutrition': return '🥗'
-      case 'analysis': return '📊'
-      case 'planning': return '📋'
-      case 'custom': return '🎯'
-      default: return '📝'
-    }
-  }
-
-  const getCategoryName = (category: string) => {
-    switch (category) {
-      case 'training': return '筋トレ'
-      case 'nutrition': return '栄養'
-      case 'analysis': return '分析'
-      case 'planning': return '計画'
-      case 'custom': return 'カスタム'
-      default: return 'その他'
-    }
-  }
 
   if (loading) {
     return (
@@ -365,14 +346,14 @@ function App() {
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
               <div className="w-12 h-12 energy-gradient rounded-2xl flex items-center justify-center floating-modern micro-bounce">
-                <Dumbbell className="w-7 h-7 text-white" />
+                <TrainingIcon size={28} color="white" />
               </div>
               <h1 className="text-display font-black bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
                 FitLoop
               </h1>
               <div className="premium-indicator">
-                <Brain className="w-4 h-4 mr-1" />
-                Claude AI
+                <AIAssistantIcon size={16} className="mr-1" />
+                AI対応
               </div>
             </div>
             
@@ -398,9 +379,14 @@ function App() {
               {/* Prompt Area */}
               <div className={`${darkMode ? 'card-modern-dark' : 'card-modern'} p-8 reveal-animation`}>
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className={`text-headline ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                    🚀 AI プロンプト
-                  </h2>
+                  <div>
+                    <h2 className={`text-headline ${darkMode ? 'text-white' : 'text-gray-900'} mb-2`}>
+                      AI プロンプト
+                    </h2>
+                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      お使いのAIツール（Claude、ChatGPT等）にコピー&ペーストしてください
+                    </p>
+                  </div>
                   <button
                     onClick={handleCopyPrompt}
                     className={`btn-energy-modern ${
@@ -439,9 +425,14 @@ function App() {
               {/* Response Area */}
               <div className={`${darkMode ? 'card-modern-dark' : 'card-modern'} p-8 reveal-animation`}>
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className={`text-headline ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                    🤖 Claude の結果
-                  </h2>
+                  <div>
+                    <h2 className={`text-headline ${darkMode ? 'text-white' : 'text-gray-900'} mb-2`}>
+                      AI の回答
+                    </h2>
+                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      AIからの回答をここに貼り付けて次のセッションを生成
+                    </p>
+                  </div>
                   <button
                     onClick={handlePasteResponse}
                     className="btn-uber micro-bounce"
@@ -471,7 +462,7 @@ function App() {
               <div className="mb-10">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className={`text-hero ${darkMode ? 'text-white' : 'text-gray-900'} leading-tight`}>
-                    <Sparkles className="inline w-10 h-10 mr-3 text-orange-500 floating-modern" />
+                    <TrainingIcon size={40} className="inline mr-3 text-orange-500 floating-modern" />
                     フィットネスの旅を始めよう！
                   </h2>
                   <div className="flex items-center space-x-3">
@@ -550,13 +541,15 @@ function App() {
                     
                     <div className="grid grid-cols-2 gap-4 mb-6">
                       {[
-                        { icon: '💪', label: '筋肉をつけたい', value: '筋肉を大きくしたい' },
-                        { icon: '🏃', label: '体力をつけたい', value: '体力・持久力向上' },
-                        { icon: '❤️', label: '健康になりたい', value: '健康維持・改善' },
-                        { icon: '✨', label: 'モテたい', value: '見た目を良くしたい' },
-                        { icon: '🎯', label: '痩せたい', value: 'ダイエット・減量' },
-                        { icon: '🏆', label: 'スポーツ向上', value: 'スポーツパフォーマンス向上' }
-                      ].map((goal) => (
+                        { label: '筋肉をつけたい', value: '筋肉を大きくしたい' },
+                        { label: '体力をつけたい', value: '体力・持久力向上' },
+                        { label: '健康になりたい', value: '健康維持・改善' },
+                        { label: 'モテたい', value: '見た目を良くしたい' },
+                        { label: '痩せたい', value: 'ダイエット・減量' },
+                        { label: 'スポーツ向上', value: 'スポーツパフォーマンス向上' }
+                      ].map((goal) => {
+                        const IconComponent = getGoalIcon(goal.value)
+                        return (
                         <button
                           key={goal.value}
                           onClick={() => {
@@ -575,7 +568,16 @@ function App() {
                           }`}
                         >
                           <div className="relative">
-                            <div className="text-4xl mb-3">{goal.icon}</div>
+                            <div className="mb-3 flex justify-center">
+                              <IconComponent 
+                                size={48} 
+                                className={`${
+                                  selectedGoals.includes(goal.value)
+                                    ? 'text-orange-500'
+                                    : darkMode ? 'text-gray-300' : 'text-gray-600'
+                                }`}
+                              />
+                            </div>
                             {selectedGoals.includes(goal.value) && (
                               <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center shadow-lg">
                                 <Check className="w-5 h-5 text-white" />
@@ -590,7 +592,8 @@ function App() {
                             {goal.label}
                           </div>
                         </button>
-                      ))}
+                        )
+                      })}
                     </div>
                     
                     <div className="mb-6">
@@ -658,11 +661,13 @@ function App() {
                     
                     <div className="grid grid-cols-1 gap-4 mb-6">
                       {[
-                        { icon: '🏋️', label: 'ジムに通っている', desc: 'フル装備のジムが利用可能', value: 'ジムに通っている（フル装備）' },
-                        { icon: '🏠', label: '自宅でダンベル', desc: 'ダンベルとベンチがある', value: '自宅トレーニング（ダンベルとベンチ）' },
-                        { icon: '💪', label: '自重トレーニング', desc: '器具なしでトレーニング', value: '自重トレーニングのみ' },
-                        { icon: '🎯', label: 'ミニマル装備', desc: '最小限の器具', value: 'ミニマル装備（抵抗バンドなど）' }
-                      ].map((env) => (
+                        { label: 'ジムに通っている', desc: 'フル装備のジムが利用可能', value: 'ジムに通っている（フル装備）' },
+                        { label: '自宅でダンベル', desc: 'ダンベルとベンチがある', value: '自宅トレーニング（ダンベルとベンチ）' },
+                        { label: '自重トレーニング', desc: '器具なしでトレーニング', value: '自重トレーニングのみ' },
+                        { label: 'ミニマル装備', desc: '最小限の器具', value: 'ミニマル装備（抵抗バンドなど）' }
+                      ].map((env) => {
+                        const IconComponent = getEnvironmentIcon(env.value)
+                        return (
                         <button
                           key={env.value}
                           onClick={() => setSelectedEnvironment(env.value)}
@@ -675,7 +680,9 @@ function App() {
                           }`}
                         >
                           <div className="flex items-start relative">
-                            <div className="text-2xl mr-4">{env.icon}</div>
+                            <div className="mr-4">
+                              <IconComponent size={32} className={selectedEnvironment === env.value ? 'text-blue-500' : darkMode ? 'text-gray-300' : 'text-gray-600'} />
+                            </div>
                             <div className="flex-1">
                               <div className={`text-lg font-bold mb-1 ${
                                 selectedEnvironment === env.value
@@ -697,7 +704,8 @@ function App() {
                             )}
                           </div>
                         </button>
-                      ))}
+                        )
+                      })}
                     </div>
                     
                     <div className="mb-6">
@@ -877,7 +885,9 @@ function App() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {filteredPrompts.length === 0 ? (
                     <div className="col-span-full text-center py-12">
-                      <div className={`text-6xl mb-4 ${darkMode ? 'text-gray-600' : 'text-gray-400'}`}>📝</div>
+                      <div className="mb-4 flex justify-center">
+                        <CustomIcon size={64} className={darkMode ? 'text-gray-600' : 'text-gray-400'} />
+                      </div>
                       <p className={`text-lg font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                         プロンプトが見つかりませんでした
                       </p>
@@ -890,7 +900,12 @@ function App() {
                       >
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex items-center space-x-2">
-                            <span className="text-2xl">{getCategoryIcon(prompt.category)}</span>
+                            <div className="flex items-center">
+                              {(() => {
+                                const CategoryIconComponent = getCategoryIcon(prompt.category)
+                                return <CategoryIconComponent size={24} className={darkMode ? 'text-gray-300' : 'text-gray-600'} />
+                              })()}
+                            </div>
                             {prompt.isMetaPrompt && (
                               <div className="badge-meta">
                                 META
