@@ -77,11 +77,16 @@ git push
 - Updates automatically when Claude's response is pasted
 
 ### Copy-Paste Workflow
-1. User enters profile info in Profile tab
-2. Prompt tab shows generated training prompt
-3. User copies prompt and pastes in Claude
-4. User pastes Claude's response back
-5. App automatically advances to next session
+1. User enters profile info in Profile tab (name, goals, environment)
+2. Prompt tab shows generated training prompt with current session details
+3. User copies prompt (one-tap copy button)
+4. User pastes in Claude and completes training
+5. User pastes Claude's response back (paste button)
+6. App automatically:
+   - Saves the response as training record
+   - Advances to next session (1→2→...→8→1)
+   - Regenerates prompt with new session data
+   - After 8 sessions, starts new cycle with adjusted program
 
 ### Security Considerations
 - All user inputs are sanitized
@@ -124,3 +129,123 @@ npm run test:coverage
 
 ## Contact
 For questions about the codebase, refer to this document first. The app is designed to be self-contained with minimal external dependencies.
+
+## Prompt Template Structure
+
+The app generates training prompts based on user profile and current session. The prompt includes:
+
+### Basic Structure
+```
+# 脂肪燃焼 & 理想的筋肉バランス トレーニングシステム
+
+## ユーザー情報
+- 名前: [User Name]
+- 目標: [User Goals] 
+- 環境: [Training Environment]
+
+## システム概要
+[System overview and features]
+
+## 最新のトレーニング記録
+**最後に実施したトレーニング**: セッション[X]（[Date]実施）
+**次回のトレーニング**: セッション[Y]（[Session Name]）
+
+## 次回のトレーニング詳細
+### セッション[Y]: [Session Name]
+[Exercise details with sets, reps, weight recommendations]
+
+## トレーニング後の記録方法
+[Recording template for user]
+```
+
+### Session Cycle (8 sessions)
+1. 胸・三頭筋
+2. 背中・二頭筋  
+3. 脚・コア
+4. 肩・前腕
+5. 全身サーキット
+6. 上半身複合
+7. 下半身・腹筋
+8. 機能的全身
+
+### JSON Metadata (Future Enhancement)
+
+While not currently implemented, prompts can include JSON metadata for enhanced features:
+
+```json
+<!-- METADATA_START -->
+{
+  "sessionNumber": 4,
+  "sessionName": "肩 & 前腕",
+  "date": "2025-05-30",
+  "exercises": [
+    {
+      "name": "ダンベルショルダープレス",
+      "targetWeight": 30,
+      "targetReps": "8-10",
+      "targetSets": 3
+    }
+  ],
+  "muscleBalance": {
+    "pushUpperBody": "weak",
+    "pullUpperBody": "strong"
+  },
+  "nextSession": 5,
+  "cycleProgress": "4/8"
+}
+<!-- METADATA_END -->
+```
+
+This would enable:
+- Automatic stats and graphs
+- Smart warnings for muscle imbalances
+- Performance predictions
+- Enhanced UI with detailed analytics
+
+## User Workflow
+
+1. **Profile Setup**: Enter name, goals, and training environment
+2. **Copy Prompt**: Generated prompt includes all user info and current session
+3. **Paste to Claude**: User executes training with Claude's guidance
+4. **Paste Response**: Claude's response advances to next session
+5. **Automatic Progression**: App updates session number and regenerates prompt
+
+## Meta-Prompt Concept
+
+The ideal workflow uses a "meta-prompt" where:
+- The prompt instructs Claude to analyze training results
+- Claude generates an entirely new prompt with updated data
+- User pastes the new prompt back to the app
+- This creates a self-evolving training system
+
+## Local Storage Structure
+
+```typescript
+// User Profile
+{
+  name: string,
+  goals: string,
+  environment: string,
+  preferences: {
+    intensity: 'low' | 'medium' | 'high',
+    frequency: number,
+    timeAvailable: number
+  }
+}
+
+// Training Context  
+{
+  cycleNumber: number,
+  sessionNumber: number,
+  performance: ExercisePerformance[]
+}
+
+// Prompt History
+{
+  type: 'training',
+  content: string,
+  metadata: any,
+  createdAt: Date,
+  used: boolean
+}
+```
