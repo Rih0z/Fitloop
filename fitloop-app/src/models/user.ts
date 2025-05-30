@@ -15,17 +15,28 @@ export interface UserProfile {
 }
 
 export function validateUserProfile(profile: UserProfile): void {
-  // 必須フィールドのチェック
-  if (profile.goals === undefined || profile.goals === null) {
+  // 名前の検証
+  if (!profile.name || typeof profile.name !== 'string') {
+    throw new Error('Name is required')
+  }
+  if (profile.name.trim().length < 1 || profile.name.length > 100) {
+    throw new Error('Name must be between 1 and 100 characters')
+  }
+
+  // 目標の検証
+  if (profile.goals === undefined || profile.goals === null || typeof profile.goals !== 'string') {
     throw new Error('Goals are required')
   }
-
-  if (profile.goals.trim() === '') {
-    throw new Error('Goals cannot be empty')
+  if (profile.goals.trim().length < 1 || profile.goals.length > 500) {
+    throw new Error('Goals must be between 1 and 500 characters')
   }
 
-  if (!profile.environment) {
+  // 環境の検証
+  if (!profile.environment || typeof profile.environment !== 'string') {
     throw new Error('Environment is required')
+  }
+  if (profile.environment.trim().length < 1 || profile.environment.length > 500) {
+    throw new Error('Environment must be between 1 and 500 characters')
   }
 
   // preferences の検証
@@ -45,8 +56,8 @@ export function validateUserProfile(profile: UserProfile): void {
   }
 
   // timeAvailable の検証
-  if (profile.preferences.timeAvailable < 0) {
-    throw new Error('Time available cannot be negative')
+  if (profile.preferences.timeAvailable < 0 || profile.preferences.timeAvailable > 300) {
+    throw new Error('Time available must be between 0 and 300 minutes')
   }
 }
 
