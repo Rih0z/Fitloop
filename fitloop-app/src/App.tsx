@@ -279,7 +279,7 @@ function App() {
   if (loading) {
     return (
       <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-gray-100'}`}>
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500 energy-glow"></div>
       </div>
     )
   }
@@ -291,13 +291,13 @@ function App() {
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center floating">
+              <div className="w-10 h-10 energy-gradient rounded-xl flex items-center justify-center floating motivation-pulse">
                 <Dumbbell className="w-6 h-6 text-white" />
               </div>
-              <h1 className="text-3xl font-bold gradient-text">
+              <h1 className="text-3xl font-bold energy-text">
                 FitLoop
               </h1>
-              <span className="hidden sm:inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-gradient-to-r from-purple-600 to-pink-600 text-white neon-glow">
+              <span className="hidden sm:inline-flex items-center px-3 py-1 rounded-full text-sm font-bold premium-gradient text-white">
                 <Brain className="w-4 h-4 mr-1" />
                 Claude AI 推奨
               </span>
@@ -328,8 +328,8 @@ function App() {
                     onClick={handleCopyPrompt}
                     className={`px-4 py-2 rounded-xl font-bold text-base transition-all ${
                       copiedPrompt 
-                        ? 'bg-green-600 text-white' 
-                        : 'btn-gradient text-white'
+                        ? 'btn-success text-white success-glow' 
+                        : 'btn-gradient text-white energy-glow'
                     }`}
                   >
                     {copiedPrompt ? (
@@ -365,7 +365,7 @@ function App() {
                   </h2>
                   <button
                     onClick={handlePasteResponse}
-                    className="px-4 py-2 btn-gradient text-white rounded-xl font-bold text-base transition-all"
+                    className="px-4 py-2 btn-gradient text-white rounded-xl font-bold text-base transition-all energy-glow"
                   >
                     <ClipboardPaste className="inline w-4 h-4 mr-2" />
                     貼り付け
@@ -381,7 +381,7 @@ function App() {
                       darkMode 
                         ? 'bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-400' 
                         : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500'
-                    } focus:outline-none focus:ring-2 focus:ring-purple-600 transition-all`}
+                    } focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all`}
                   />
                 </div>
               </div>
@@ -394,18 +394,18 @@ function App() {
               <div className="mb-8">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className={`text-3xl font-bold ${darkMode ? 'text-white text-contrast-dark' : 'text-gray-900 text-contrast'}`}>
-                    <Sparkles className="inline w-7 h-7 mr-2 text-purple-600" />
+                    <Sparkles className="inline w-7 h-7 mr-2 text-orange-500 energy-glow" />
                     フィットネスの旅を始めよう！
                   </h2>
                   <div className="flex items-center space-x-2">
                     <div className={`w-8 h-2 rounded-full transition-all ${
-                      profileStep >= 1 ? 'bg-purple-600' : darkMode ? 'bg-gray-700' : 'bg-gray-300'
+                      profileStep >= 1 ? 'health-gradient health-progress' : darkMode ? 'bg-gray-700' : 'bg-gray-300'
                     }`} />
                     <div className={`w-8 h-2 rounded-full transition-all ${
-                      profileStep >= 2 ? 'bg-purple-600' : darkMode ? 'bg-gray-700' : 'bg-gray-300'
+                      profileStep >= 2 ? 'health-gradient health-progress' : darkMode ? 'bg-gray-700' : 'bg-gray-300'
                     }`} />
                     <div className={`w-8 h-2 rounded-full transition-all ${
-                      profileStep >= 3 ? 'bg-purple-600' : darkMode ? 'bg-gray-700' : 'bg-gray-300'
+                      profileStep >= 3 ? 'success-gradient health-progress' : darkMode ? 'bg-gray-700' : 'bg-gray-300'
                     }`} />
                   </div>
                 </div>
@@ -416,7 +416,7 @@ function App() {
                 {profileStep === 1 && (
                   <div className="fade-in">
                     <div className="text-center mb-8">
-                      <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center floating">
+                      <div className="w-20 h-20 mx-auto mb-4 energy-gradient rounded-full flex items-center justify-center floating motivation-pulse">
                         <User className="w-10 h-10 text-white" />
                       </div>
                       <h3 className={`text-2xl font-bold mb-2 ${darkMode ? 'text-white text-contrast-dark' : 'text-gray-900 text-contrast'}`}>
@@ -437,7 +437,7 @@ function App() {
                           darkMode 
                             ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400' 
                             : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                        } focus:outline-none focus:ring-2 focus:ring-purple-600 transition-all`}
+                        } focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all`}
                         placeholder="お名前を入力..."
                         autoFocus
                       />
@@ -448,7 +448,7 @@ function App() {
                       disabled={!formData.name}
                       className={`w-full mt-6 py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center ${
                         formData.name
-                          ? 'btn-gradient text-white hover:shadow-lg transform hover:scale-105'
+                          ? 'btn-gradient text-white hover:shadow-lg transform hover:scale-105 energy-glow'
                           : darkMode ? 'bg-gray-800 text-gray-500' : 'bg-gray-200 text-gray-400'
                       }`}
                     >
@@ -462,7 +462,7 @@ function App() {
                 {profileStep === 2 && (
                   <div className="fade-in">
                     <div className="text-center mb-8">
-                      <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center floating">
+                      <div className="w-20 h-20 mx-auto mb-4 energy-gradient rounded-full flex items-center justify-center floating motivation-pulse">
                         <Target className="w-10 h-10 text-white" />
                       </div>
                       <h3 className={`text-2xl font-bold mb-2 ${darkMode ? 'text-white text-contrast-dark' : 'text-gray-900 text-contrast'}`}>
@@ -491,9 +491,9 @@ function App() {
                               setSelectedGoals([...selectedGoals, goal.value])
                             }
                           }}
-                          className={`p-4 rounded-xl border-2 transition-all transform hover:scale-105 ${
+                          className={`p-4 rounded-xl border-2 transition-all transform hover:scale-105 goal-card ${
                             selectedGoals.includes(goal.value)
-                              ? 'border-purple-600 bg-purple-600/10'
+                              ? 'border-orange-500 bg-orange-500/10 energy-glow selected'
                               : darkMode 
                                 ? 'border-gray-700 hover:border-gray-600' 
                                 : 'border-gray-300 hover:border-gray-400'
@@ -502,7 +502,7 @@ function App() {
                           <div className="text-3xl mb-2">{goal.icon}</div>
                           <div className={`text-base font-bold ${
                             selectedGoals.includes(goal.value)
-                              ? 'text-purple-600'
+                              ? 'text-orange-500'
                               : darkMode ? 'text-gray-200' : 'text-gray-800'
                           }`}>
                             {goal.label}
@@ -523,7 +523,7 @@ function App() {
                           darkMode 
                             ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400' 
                             : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                        } focus:outline-none focus:ring-2 focus:ring-purple-600 transition-all`}
+                        } focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all`}
                         placeholder="他に目標があれば入力..."
                       />
                     </div>
@@ -548,7 +548,7 @@ function App() {
                         disabled={selectedGoals.length === 0 && !customGoal}
                         className={`flex-1 py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center ${
                           selectedGoals.length > 0 || customGoal
-                            ? 'btn-gradient text-white hover:shadow-lg transform hover:scale-105'
+                            ? 'btn-gradient text-white hover:shadow-lg transform hover:scale-105 energy-glow'
                             : darkMode ? 'bg-gray-800 text-gray-500' : 'bg-gray-200 text-gray-400'
                         }`}
                       >
@@ -563,7 +563,7 @@ function App() {
                 {profileStep === 3 && (
                   <div className="fade-in">
                     <div className="text-center mb-8">
-                      <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center floating">
+                      <div className="w-20 h-20 mx-auto mb-4 energy-gradient rounded-full flex items-center justify-center floating motivation-pulse">
                         <Home className="w-10 h-10 text-white" />
                       </div>
                       <h3 className={`text-2xl font-bold mb-2 ${darkMode ? 'text-white text-contrast-dark' : 'text-gray-900 text-contrast'}`}>
@@ -584,9 +584,9 @@ function App() {
                         <button
                           key={env.value}
                           onClick={() => setSelectedEnvironment(env.value)}
-                          className={`p-4 rounded-xl border-2 transition-all transform hover:scale-105 text-left ${
+                          className={`p-4 rounded-xl border-2 transition-all transform hover:scale-105 text-left goal-card ${
                             selectedEnvironment === env.value
-                              ? 'border-purple-600 bg-purple-600/10'
+                              ? 'border-blue-500 bg-blue-500/10 health-glow selected'
                               : darkMode 
                                 ? 'border-gray-700 hover:border-gray-600' 
                                 : 'border-gray-300 hover:border-gray-400'
@@ -597,7 +597,7 @@ function App() {
                             <div>
                               <div className={`text-lg font-bold mb-1 ${
                                 selectedEnvironment === env.value
-                                  ? 'text-purple-600'
+                                  ? 'text-blue-500'
                                   : darkMode ? 'text-gray-100' : 'text-gray-900'
                               }`}>
                                 {env.label}
@@ -625,7 +625,7 @@ function App() {
                           darkMode 
                             ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400' 
                             : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                        } focus:outline-none focus:ring-2 focus:ring-purple-600 transition-all`}
+                        } focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all`}
                         placeholder="例: 週3回ジムに通える、朝しか時間がない"
                       />
                     </div>
@@ -652,7 +652,7 @@ function App() {
                         disabled={!selectedEnvironment}
                         className={`flex-1 py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center ${
                           selectedEnvironment
-                            ? 'btn-gradient text-white hover:shadow-lg transform hover:scale-105'
+                            ? 'btn-achievement text-white hover:shadow-lg transform hover:scale-105 achievement-glow'
                             : darkMode ? 'bg-gray-800 text-gray-500' : 'bg-gray-200 text-gray-400'
                         }`}
                       >
@@ -666,7 +666,7 @@ function App() {
                 {/* Completion State */}
                 {profile && profileStep === 1 && (
                   <div className={`mt-6 p-6 rounded-xl ${darkMode ? 'neumorphism-dark' : 'neumorphism'} text-center`}>
-                    <CheckCircle2 className="w-12 h-12 mx-auto mb-4 text-green-500" />
+                    <CheckCircle2 className="w-12 h-12 mx-auto mb-4 text-green-500 success-glow" />
                     <h3 className={`text-xl font-bold mb-2 ${darkMode ? 'text-white text-contrast-dark' : 'text-gray-900 text-contrast'}`}>
                       プロフィール設定完了！
                     </h3>
@@ -710,10 +710,10 @@ function App() {
                 {context && profile && profileStep === 1 && (
                   <div className={`mt-6 p-4 rounded-xl ${darkMode ? 'neumorphism-dark' : 'neumorphism'}`}>
                     <p className={`text-base font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                      現在のセッション: <span className="font-bold gradient-text text-lg">{context.sessionNumber}</span> ({getSessionTitle(context.sessionNumber)})
+                      現在のセッション: <span className="font-bold health-text text-lg">{context.sessionNumber}</span> ({getSessionTitle(context.sessionNumber)})
                     </p>
                     <p className={`text-base font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                      サイクル: <span className="font-bold gradient-text text-lg">{context.cycleNumber}</span>
+                      サイクル: <span className="font-bold health-text text-lg">{context.cycleNumber}</span>
                     </p>
                   </div>
                 )}
@@ -730,7 +730,7 @@ function App() {
               <div className="space-y-4">
                 <div className={`p-4 rounded-xl ${darkMode ? 'neumorphism-dark' : 'neumorphism'} card-hover`}>
                   <h3 className={`text-xl font-bold mb-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                    <span className="gradient-text">使い方</span>
+                    <span className="energy-text">使い方</span>
                   </h3>
                   <ol className={`list-decimal list-inside space-y-3 text-base font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
                     <li className="hover:translate-x-1 transition-transform">「プロフィール」タブで情報を入力</li>
@@ -743,10 +743,10 @@ function App() {
                 
                 <div className={`p-4 rounded-xl ${darkMode ? 'neumorphism-dark' : 'neumorphism'} card-hover`}>
                   <h3 className={`text-xl font-bold mb-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                    <span className="gradient-text">トレーニングサイクル</span>
+                    <span className="health-text">トレーニングサイクル</span>
                   </h3>
                   <p className={`text-base font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
-                    <span className="font-bold text-purple-600 text-lg">8セッション</span>で<span className="font-bold text-purple-600 text-lg">1サイクル</span>です。サイクル完了後、トレーニングメニューが自動的に再構成されます。
+                    <span className="font-bold achievement-text text-lg streak-glow">8セッション</span>で<span className="font-bold health-text text-lg">1サイクル</span>です。サイクル完了後、トレーニングメニューが自動的に再構成されます。
                   </p>
                 </div>
               </div>
@@ -762,7 +762,7 @@ function App() {
                 onClick={() => setActiveTab('prompt')}
                 className={`flex-1 py-3 flex flex-col items-center gap-1 transition-colors ${
                   activeTab === 'prompt' 
-                    ? 'text-purple-600' 
+                    ? 'text-orange-500 energy-glow' 
                     : darkMode ? 'text-gray-400' : 'text-gray-600'
                 }`}
               >
@@ -774,7 +774,7 @@ function App() {
                 onClick={() => setActiveTab('profile')}
                 className={`flex-1 py-3 flex flex-col items-center gap-1 transition-colors ${
                   activeTab === 'profile' 
-                    ? 'text-purple-600' 
+                    ? 'text-orange-500 energy-glow' 
                     : darkMode ? 'text-gray-400' : 'text-gray-600'
                 }`}
               >
@@ -786,7 +786,7 @@ function App() {
                 onClick={() => setActiveTab('settings')}
                 className={`flex-1 py-3 flex flex-col items-center gap-1 transition-colors ${
                   activeTab === 'settings' 
-                    ? 'text-purple-600' 
+                    ? 'text-orange-500 energy-glow' 
                     : darkMode ? 'text-gray-400' : 'text-gray-600'
                 }`}
               >
