@@ -37,7 +37,23 @@ function App() {
         copy: 'コピー',
         copied: 'コピー済み',
         saveMessage: 'プロンプトをテンプレートとして保存しました',
-        updateMessage: 'プロンプトを更新しました'
+        updateMessage: 'プロンプトを更新しました',
+        howToUse: '使い方',
+        usage: '使い方',
+        trainingCycle: 'トレーニングサイクル',
+        session: 'セッション',
+        trainingCycleDescription: 'で1サイクルです。サイクル完了後、トレーニングメニューが自動的に再構成されます。',
+        usageSteps: [
+          '「プロフィール」タブで情報を入力',
+          '「プロンプト」タブでプロンプトをコピー',
+          'Claude AIに貼り付けて実行',
+          'Claudeの結果を「Claudeの結果」エリアに貼り付け',
+          '自動的に次のセッションのプロンプトが生成されます'
+        ],
+        meta: 'META',
+        timesUsed: '回使用',
+        unused: '未使用',
+        noPromptsFound: 'プロンプトが見つかりませんでした'
       },
       en: {
         appName: 'FitLoop',
@@ -51,7 +67,23 @@ function App() {
         copy: 'Copy',
         copied: 'Copied',
         saveMessage: 'Prompt saved as template',
-        updateMessage: 'Prompt updated'
+        updateMessage: 'Prompt updated',
+        howToUse: 'How to Use',
+        usage: 'Usage',
+        trainingCycle: 'Training Cycle',
+        session: ' sessions',
+        trainingCycleDescription: ' make 1 cycle. After cycle completion, the training menu is automatically reconstructed.',
+        usageSteps: [
+          'Enter your information in the "Profile" tab',
+          'Copy the prompt from the "Prompt" tab',
+          'Paste it into Claude AI and execute',
+          'Paste Claude\'s response into the "AI Response" area',
+          'The next session prompt will be automatically generated'
+        ],
+        meta: 'META',
+        timesUsed: ' times used',
+        unused: 'Unused',
+        noPromptsFound: 'No prompts found'
       }
     }
     return translations[language]?.[key] || key
