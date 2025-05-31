@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Copy, Check, Moon, Sun, ClipboardPaste, User, FileText, Settings, ChevronRight, ArrowLeft, CheckCircle2, BookOpen, Star, Search, Filter, Target, Home } from 'lucide-react'
+import { Copy, Check, Moon, Sun, ClipboardPaste, User, FileText, Settings, ChevronRight, ArrowLeft, CheckCircle2, BookOpen, Star, Search, Filter, Target, Home, Edit3, X, Save } from 'lucide-react'
 import { StorageManager } from './lib/db'
 import type { UserProfile } from './models/user'
 import type { Context } from './models/context'
@@ -41,6 +41,9 @@ function App() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [showMetaPromptsOnly, setShowMetaPromptsOnly] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [editingPrompt, setEditingPrompt] = useState<SavedPrompt | null>(null)
+  const [editContent, setEditContent] = useState('')
+  const [saveMessage, setSaveMessage] = useState<string | null>(null)
 
   // 初期データ読み込み
   useEffect(() => {
@@ -277,6 +280,10 @@ function App() {
           
           // Reload prompts to show the new template
           await loadSavedPrompts()
+          
+          // Show save message
+          setSaveMessage('プロンプトをテンプレートとして保存しました')
+          setTimeout(() => setSaveMessage(null), 3000)
         } else {
           // Check if this is a prompt (contains specific keywords)
           const isPrompt = text.includes('トレーニング') || text.includes('セッション') || text.includes('エクササイズ')
@@ -300,6 +307,10 @@ function App() {
             
             // Reload prompts to show the new template
             await loadSavedPrompts()
+            
+            // Show save message
+            setSaveMessage('プロンプトをテンプレートとして保存しました')
+            setTimeout(() => setSaveMessage(null), 3000)
           } else {
             // Regular training record (old behavior)
             const newPerformance: any = {
@@ -347,6 +358,27 @@ function App() {
     await loadSavedPrompts()
     setCopiedPrompt(true)
     setTimeout(() => setCopiedPrompt(false), 2000)
+  }
+  
+  const handleEditPrompt = (prompt: SavedPrompt) => {
+    setEditingPrompt(prompt)
+    setEditContent(prompt.content)
+  }
+  
+  const handleSaveEdit = async () => {
+    if (editingPrompt && editingPrompt.id) {
+      await storage.updatePromptContent(editingPrompt.id, editContent)
+      await loadSavedPrompts()
+      setEditingPrompt(null)
+      setEditContent('')
+      setSaveMessage('プロンプトを更新しました')
+      setTimeout(() => setSaveMessage(null), 3000)
+    }
+  }
+  
+  const handleCancelEdit = () => {
+    setEditingPrompt(null)
+    setEditContent('')
   }
 
   const filteredPrompts = savedPrompts.filter(prompt => {
@@ -955,43 +987,37 @@ function App() {
                           </div>
                         </div>
                         
-                        <h3 className={`text-lg font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                        <h3 className={`text-lg font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                           {prompt.title}
                         </h3>
-                        
-                        {prompt.description && (
-                          <p className={`text-base font-medium mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                            {prompt.description}
-                          </p>
-                        )}
-                        
-                        <div className="flex flex-wrap gap-2 mb-4">
-                          {prompt.tags.map((tag, index) => (
-                            <span
-                              key={index}
-                              className={`px-2 py-1 text-xs rounded-full ${
-                                darkMode ? 'bg-gray-800 text-gray-400' : 'bg-gray-100 text-gray-600'
-                              }`}
-                            >
-                              #{tag}
-                            </span>
-                          ))}
-                        </div>
                         
                         <div className="flex justify-between items-center">
                           <div className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                             {prompt.lastUsed 
-                              ? `最終使用: ${new Date(prompt.lastUsed).toLocaleDateString('ja-JP')}`
+                              ? `${new Date(prompt.lastUsed).toLocaleDateString('ja-JP')}`
                               : '未使用'
                             }
                           </div>
-                          <button
-                            onClick={() => handleCopyLibraryPrompt(prompt)}
-                            className="px-4 py-2 btn-gradient text-white rounded-xl font-bold text-sm transition-all energy-glow hover:scale-105"
-                          >
-                            <Copy className="inline w-4 h-4 mr-2" />
-                            コピー
-                          </button>
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => handleEditPrompt(prompt)}
+                              className={`p-2 rounded-lg transition-all ${
+                                darkMode 
+                                  ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' 
+                                  : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                              }`}
+                              title="編集"
+                            >
+                              <Edit3 size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleCopyLibraryPrompt(prompt)}
+                              className="px-4 py-2 btn-gradient text-white rounded-xl font-bold text-sm transition-all energy-glow hover:scale-105"
+                            >
+                              <Copy className="inline w-4 h-4 mr-2" />
+                              コピー
+                            </button>
+                          </div>
                         </div>
                       </div>
                     ))
@@ -1100,6 +1126,72 @@ function App() {
           >
             ×
           </button>
+        </div>
+      )}
+      
+      {/* Save Message */}
+      {saveMessage && (
+        <div className="fixed bottom-20 right-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-5 py-4 rounded-xl shadow-lg fade-in">
+          <span className="text-base font-medium">{saveMessage}</span>
+        </div>
+      )}
+      
+      {/* Edit Modal */}
+      {editingPrompt && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className={`w-full max-w-4xl ${darkMode ? 'card-modern-dark' : 'card-modern'} p-6 max-h-[90vh] overflow-y-auto`}>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                プロンプト編集
+              </h2>
+              <button
+                onClick={handleCancelEdit}
+                className={`p-2 rounded-lg transition-all ${
+                  darkMode 
+                    ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' 
+                    : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                }`}
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="mb-4">
+              <p className={`text-lg font-medium mb-2 ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                {editingPrompt.title}
+              </p>
+              <textarea
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                className={`w-full h-96 p-4 rounded-xl border text-base font-mono ${
+                  darkMode 
+                    ? 'bg-gray-800 border-gray-600 text-gray-100 placeholder-gray-400' 
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                } focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all`}
+                placeholder="プロンプトの内容を編集..."
+              />
+            </div>
+            
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={handleCancelEdit}
+                className={`px-6 py-2 rounded-xl font-bold transition-all ${
+                  darkMode 
+                    ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' 
+                    : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                }`}
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={handleSaveEdit}
+                className="px-6 py-2 btn-gradient text-white rounded-xl font-bold transition-all energy-glow hover:scale-105 flex items-center"
+              >
+                <Save size={18} className="mr-2" />
+                保存
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

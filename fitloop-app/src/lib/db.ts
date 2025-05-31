@@ -184,6 +184,13 @@ export class StorageManager {
   async deletePrompt(id: number): Promise<void> {
     await db.savedPrompts.delete(id)
   }
+  
+  async updatePromptContent(id: number, content: string): Promise<void> {
+    await db.savedPrompts.update(id, {
+      content,
+      updatedAt: new Date()
+    })
+  }
 
   // 前回のプロンプトを保存
   async saveCurrentPromptAsLast(content: string, title?: string): Promise<void> {
