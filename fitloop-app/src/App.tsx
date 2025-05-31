@@ -250,6 +250,19 @@ function App() {
           // Claude generated a new prompt with metadata
           setCurrentPrompt(text)
           
+          // Save the prompt as a template in the library
+          await storage.savePromptToCollection({
+            title: `セッション${metadata.sessionNumber} - ${metadata.sessionName}`,
+            content: text,
+            description: `${profile.name}さんのセッション${metadata.sessionNumber}用プロンプト`,
+            category: 'training',
+            tags: ['自動生成', `セッション${metadata.sessionNumber}`, metadata.sessionName],
+            isMetaPrompt: true,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            usageCount: 0
+          })
+          
           // Update context with new session info from metadata
           await storage.updateContext({ 
             cycleNumber: Math.ceil(metadata.nextSession / 8), 
@@ -261,42 +274,61 @@ function App() {
           if (newContext) {
             setContext(newContext)
           }
+          
+          // Reload prompts to show the new template
+          await loadSavedPrompts()
         } else {
-          // Regular training record (old behavior)
-          const newPerformance: any = {
-            date: new Date(),
-            exerciseName: `セッション${context.sessionNumber}の記録`,
-            sets: [],
-            notes: text,
-            muscleGroups: [],
-          }
+          // Check if this is a prompt (contains specific keywords)
+          const isPrompt = text.includes('トレーニング') || text.includes('セッション') || text.includes('エクササイズ')
           
-          const updatedPerformance = [...context.performance, newPerformance]
-          
-          const nextSession = context.sessionNumber + 1
-          const nextCycle = nextSession > 8 ? context.cycleNumber + 1 : context.cycleNumber
-          const sessionNumber = nextSession > 8 ? 1 : nextSession
-          
-          await storage.updateContext({ 
-            cycleNumber: nextCycle, 
-            sessionNumber: sessionNumber,
-            performance: updatedPerformance
-          })
-          
-          const newContext = await storage.getContext()
-          if (newContext) {
-            setContext(newContext)
-            generateFullPrompt(profile, newContext)
+          if (isPrompt && text.length > 500) {
+            // Save as a custom prompt template
+            await storage.savePromptToCollection({
+              title: `カスタムプロンプト - ${new Date().toLocaleDateString('ja-JP')}`,
+              content: text,
+              description: `${profile.name}さんがAIから取得したプロンプト`,
+              category: 'custom',
+              tags: ['AI生成', 'カスタム', `セッション${context.sessionNumber}`],
+              isMetaPrompt: false,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              usageCount: 0
+            })
+            
+            // Set as current prompt
+            setCurrentPrompt(text)
+            
+            // Reload prompts to show the new template
+            await loadSavedPrompts()
+          } else {
+            // Regular training record (old behavior)
+            const newPerformance: any = {
+              date: new Date(),
+              exerciseName: `セッション${context.sessionNumber}の記録`,
+              sets: [],
+              notes: text,
+              muscleGroups: [],
+            }
+            
+            const updatedPerformance = [...context.performance, newPerformance]
+            
+            const nextSession = context.sessionNumber + 1
+            const nextCycle = nextSession > 8 ? context.cycleNumber + 1 : context.cycleNumber
+            const sessionNumber = nextSession > 8 ? 1 : nextSession
+            
+            await storage.updateContext({ 
+              cycleNumber: nextCycle, 
+              sessionNumber: sessionNumber,
+              performance: updatedPerformance
+            })
+            
+            const newContext = await storage.getContext()
+            if (newContext) {
+              setContext(newContext)
+              generateFullPrompt(profile, newContext)
+            }
           }
         }
-        
-        await storage.savePrompt({
-          type: 'training',
-          content: text,
-          metadata: { sessionNumber: context.sessionNumber },
-          createdAt: new Date(),
-          used: true,
-        })
       }
     } catch (err) {
       setError('クリップボードへのアクセスに失敗しました')
@@ -384,7 +416,7 @@ function App() {
                       AI プロンプト
                     </h2>
                     <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                      お使いのAIツール（Claude、ChatGPT等）にコピー&ペーストしてください
+                      お使いのAIツール（Claude、Gemini等）にコピー&ペーストしてください
                     </p>
                   </div>
                   <button
