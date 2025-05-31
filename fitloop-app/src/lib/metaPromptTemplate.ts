@@ -1,4 +1,8 @@
+// メタプロンプトテンプレート
+
 export const META_PROMPT_TEMPLATE = `# 脂肪燃焼 & 理想的筋肉バランス トレーニングシステム（メタプロンプト版）
+
+{{languageInstruction}}
 
 ## 🔄 重要：このプロンプトの自動更新機能
 
@@ -315,7 +319,7 @@ export const SESSION_TITLES = {
 };
 
 // Helper function to generate initial prompt from user answers
-export function generateInitialPrompt(_userGoals: string, _userEnvironment: string): string {
+export function generateInitialPrompt(_userGoals: string, _userEnvironment: string, language: string = 'ja'): string {
   const sessionNumber = 1;
   const sessionTitle = SESSION_TITLES[sessionNumber];
   const exercises = META_PROMPT_EXERCISES[sessionNumber];
@@ -350,8 +354,12 @@ export function generateInitialPrompt(_userGoals: string, _userEnvironment: stri
     "正しいフォームの習得を優先"
   ], null, 2);
   
+  // Get language instruction
+  const languageInstruction = language === 'en' ? 'Please respond in English only.' : '回答は必ず日本語でお願いします。';
+
   // Replace placeholders in template
   let prompt = META_PROMPT_TEMPLATE
+    .replace(/{{languageInstruction}}/g, `**言語指定**: ${languageInstruction}`)
     .replace(/{{lastSession}}/g, '未開始')
     .replace(/{{nextSession}}/g, `セッション${sessionNumber}（${sessionTitle}）`)
     .replace(/{{currentSession}}/g, `セッション${sessionNumber}: ${sessionTitle}`)

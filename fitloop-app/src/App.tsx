@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Copy, Check, Moon, Sun, ClipboardPaste, User, FileText, Settings, ChevronRight, ArrowLeft, CheckCircle2, BookOpen, Star, Search, Filter, Target, Home, Edit3, X, Save } from 'lucide-react'
+import { Copy, Check, Moon, Sun, ClipboardPaste, User, FileText, Settings, ChevronRight, ArrowLeft, CheckCircle2, BookOpen, Star, Search, Filter, Target, Home, Edit3, X, Save, Globe } from 'lucide-react'
 import { StorageManager } from './lib/db'
 import type { UserProfile } from './models/user'
 import type { Context } from './models/context'
@@ -16,6 +16,58 @@ const storage = new StorageManager()
 type TabType = 'prompt' | 'profile' | 'library' | 'settings'
 
 function App() {
+  const [language, setLanguage] = useState(() => {
+    const stored = localStorage.getItem('language')
+    const browserLang = navigator.language.split('-')[0]
+    return stored || (browserLang === 'en' ? 'en' : 'ja')
+  })
+  
+  // 簡単な翻訳関数
+  const t = (key: string) => {
+    const translations: any = {
+      ja: {
+        appName: 'FitLoop',
+        aiSupported: 'AI対応',
+        promptTab: 'プロンプト',
+        profileTab: 'プロフィール', 
+        libraryTab: 'ライブラリ',
+        settingsTab: '使い方',
+        aiPrompt: 'AI プロンプト',
+        promptDescription: 'お使いのAIツール（Claude、Gemini等）にコピー&ペーストしてください',
+        copy: 'コピー',
+        copied: 'コピー済み',
+        saveMessage: 'プロンプトをテンプレートとして保存しました',
+        updateMessage: 'プロンプトを更新しました'
+      },
+      en: {
+        appName: 'FitLoop',
+        aiSupported: 'AI Ready',
+        promptTab: 'Prompt',
+        profileTab: 'Profile',
+        libraryTab: 'Library', 
+        settingsTab: 'How to Use',
+        aiPrompt: 'AI Prompt',
+        promptDescription: 'Copy and paste this into your AI tool (Claude, Gemini, etc.)',
+        copy: 'Copy',
+        copied: 'Copied',
+        saveMessage: 'Prompt saved as template',
+        updateMessage: 'Prompt updated'
+      }
+    }
+    return translations[language]?.[key] || key
+  }
+  
+  // 言語に応じたメッセージ
+  const getLanguageInstruction = (lang: string) => {
+    return lang === 'en' ? 'Please respond in English only.' : '回答は必ず日本語でお願いします。'
+  }
+  
+  // 言語切り替え
+  const toggleLanguage = () => {
+    const newLang = language === 'ja' ? 'en' : 'ja'
+    setLanguage(newLang)
+    localStorage.setItem('language', newLang)
+  }
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [context, setContext] = useState<Context | null>(null)
   const [currentPrompt, setCurrentPrompt] = useState<string>('')
@@ -87,7 +139,7 @@ function App() {
       await storage.initializeDefaultPrompts()
       await loadSavedPrompts()
     } catch (error) {
-      setError('データの読み込みに失敗しました')
+      setError(t('loadingFailed'))
     } finally {
       setLoading(false)
     }
@@ -148,8 +200,10 @@ function App() {
 
 `
     
-    // Replace placeholders in template
+    // Replace placeholders in template and add language instruction
+    const languageInstruction = getLanguageInstruction(language)
     let prompt = META_PROMPT_TEMPLATE
+      .replace(/{{languageInstruction}}/g, languageInstruction)
       .replace(/{{lastSession}}/g, `セッション${lastSession}（${lastSessionTitle}） - ${lastDate}実施`)
       .replace(/{{nextSession}}/g, `セッション${sessionNumber}（${sessionTitle}）`)
       .replace(/{{currentSession}}/g, `セッション${sessionNumber}: ${sessionTitle}`)
@@ -220,7 +274,7 @@ function App() {
       setActiveTab('prompt') // プロンプトタブに自動で切り替え
       setProfileStep(1) // Reset to completion state
     } catch (error: any) {
-      setError(error.message || 'プロフィール更新に失敗しました')
+      setError(error.message || t('profileUpdateFailed'))
     }
   }
 
@@ -282,7 +336,7 @@ function App() {
           await loadSavedPrompts()
           
           // Show save message
-          setSaveMessage('プロンプトをテンプレートとして保存しました')
+          setSaveMessage(t('saveMessage'))
           setTimeout(() => setSaveMessage(null), 3000)
         } else {
           // Check if this is a prompt (contains specific keywords)
@@ -309,7 +363,7 @@ function App() {
             await loadSavedPrompts()
             
             // Show save message
-            setSaveMessage('プロンプトをテンプレートとして保存しました')
+            setSaveMessage(t('saveMessage'))
             setTimeout(() => setSaveMessage(null), 3000)
           } else {
             // Regular training record (old behavior)
@@ -342,7 +396,7 @@ function App() {
         }
       }
     } catch (err) {
-      setError('クリップボードへのアクセスに失敗しました')
+      setError(t('clipboardAccessFailed'))
     }
   }
 
@@ -371,7 +425,7 @@ function App() {
       await loadSavedPrompts()
       setEditingPrompt(null)
       setEditContent('')
-      setSaveMessage('プロンプトを更新しました')
+      setSaveMessage(t('updateMessage'))
       setTimeout(() => setSaveMessage(null), 3000)
     }
   }
@@ -413,24 +467,40 @@ function App() {
                 <TrainingIcon size={28} color="white" />
               </div>
               <h1 className="text-display font-black bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
-                FitLoop
+                {t('appName')}
               </h1>
               <div className="premium-indicator">
                 <AIAssistantIcon size={16} className="mr-1" />
-                AI対応
+                {t('aiSupported')}
               </div>
             </div>
             
-            <button
-              onClick={toggleDarkMode}
-              className={`p-3 rounded-2xl transition-all duration-300 ${
-                darkMode 
-                  ? 'bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-400' 
-                  : 'bg-gray-800/10 hover:bg-gray-800/20 text-gray-700'
-              } hover:scale-110 micro-bounce`}
-            >
-              {darkMode ? <Sun size={20} className="text-yellow-400" /> : <Moon size={20} className="text-indigo-600" />}
-            </button>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={toggleLanguage}
+                className={`flex items-center space-x-2 p-3 rounded-2xl transition-all duration-300 ${ 
+                  darkMode 
+                    ? 'bg-blue-500/20 hover:bg-blue-500/30 text-blue-400' 
+                    : 'bg-blue-100 hover:bg-blue-200 text-blue-700'
+                } hover:scale-110 micro-bounce`}
+                title={`Current: ${language === 'ja' ? '日本語' : 'English'}`}
+              >
+                <Globe size={20} />
+                <span className="text-sm font-bold">
+                  {language === 'ja' ? '日本語' : 'EN'}
+                </span>
+              </button>
+              <button
+                onClick={toggleDarkMode}
+                className={`p-3 rounded-2xl transition-all duration-300 ${
+                  darkMode 
+                    ? 'bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-400' 
+                    : 'bg-gray-800/10 hover:bg-gray-800/20 text-gray-700'
+                } hover:scale-110 micro-bounce`}
+              >
+                {darkMode ? <Sun size={20} className="text-yellow-400" /> : <Moon size={20} className="text-indigo-600" />}
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -445,10 +515,10 @@ function App() {
                 <div className="flex justify-between items-center mb-6">
                   <div>
                     <h2 className={`text-headline ${darkMode ? 'text-white' : 'text-gray-900'} mb-2`}>
-                      AI プロンプト
+                      {t('aiPrompt')}
                     </h2>
                     <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                      お使いのAIツール（Claude、Gemini等）にコピー&ペーストしてください
+                      {t('promptDescription')}
                     </p>
                   </div>
                   <button
@@ -460,12 +530,12 @@ function App() {
                     {copiedPrompt ? (
                       <>
                         <Check className="inline w-4 h-4 mr-2" />
-                        コピー済み
+                        {t('copied')}
                       </>
                     ) : (
                       <>
                         <Copy className="inline w-4 h-4 mr-2" />
-                        コピー
+                        {t('copy')}
                       </>
                     )}
                   </button>
@@ -479,7 +549,7 @@ function App() {
                   }`}>
                     {currentPrompt || (
                       <span className={`${darkMode ? 'text-gray-400' : 'text-gray-500'} italic`}>
-                        プロフィールを設定してプロンプトを生成してください
+                        {t('promptPlaceholder')}
                       </span>
                     )}
                   </pre>
@@ -491,10 +561,10 @@ function App() {
                 <div className="flex justify-between items-center mb-6">
                   <div>
                     <h2 className={`text-headline ${darkMode ? 'text-white' : 'text-gray-900'} mb-2`}>
-                      AI の回答
+                      {t('aiResponse')}
                     </h2>
                     <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                      AIからの回答をここに貼り付けて次のセッションを生成
+                      {t('aiResponseDescription')}
                     </p>
                   </div>
                   <button
@@ -502,7 +572,7 @@ function App() {
                     className="btn-uber micro-bounce"
                   >
                     <ClipboardPaste className="inline w-4 h-4 mr-2" />
-                    貼り付け
+                    {t('paste')}
                   </button>
                 </div>
                 
@@ -510,7 +580,7 @@ function App() {
                   <textarea
                     value={aiResponse}
                     onChange={(e) => setAiResponse(e.target.value)}
-                    placeholder="Claude からの結果をここに貼り付けてください..."
+                    placeholder={t('responsePlaceholder')}
                     className={`w-full h-[600px] text-lg leading-relaxed resize-none ${
                       darkMode ? 'input-modern-dark' : 'input-modern'
                     }`}
@@ -527,7 +597,7 @@ function App() {
                 <div className="flex items-center justify-between mb-6">
                   <h2 className={`text-hero ${darkMode ? 'text-white' : 'text-gray-900'} leading-tight`}>
                     <TrainingIcon size={40} className="inline mr-3 text-orange-500 floating-modern" />
-                    フィットネスの旅を始めよう！
+                    {t('startFitnessJourney')}
                   </h2>
                   <div className="flex items-center space-x-3">
                     <div className={`w-12 h-3 rounded-full transition-all duration-500 ${
@@ -552,10 +622,10 @@ function App() {
                         <User className="w-12 h-12 text-white" />
                       </div>
                       <h3 className={`text-display mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                        こんにちは！お名前を教えてください
+                        {t('profileStep1Title')}
                       </h3>
                       <p className={`text-body-modern ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                        あなたに合わせたプログラムを作成します
+                        {t('profileStep1Description')}
                       </p>
                     </div>
                     
@@ -568,7 +638,7 @@ function App() {
                         className={`w-full text-2xl font-medium ${
                           darkMode ? 'input-modern-dark' : 'input-modern'
                         }`}
-                        placeholder="お名前を入力..."
+                        placeholder={t('nameInputPlaceholder')}
                         autoFocus
                       />
                     </div>
@@ -582,7 +652,7 @@ function App() {
                           : darkMode ? 'bg-gray-700/50 text-gray-500 cursor-not-allowed' : 'bg-gray-200/50 text-gray-400 cursor-not-allowed'
                       }`}
                     >
-                      次へ
+                      {t('next')}
                       <ChevronRight className="ml-2 w-5 h-5" />
                     </button>
                   </div>
@@ -605,12 +675,12 @@ function App() {
                     
                     <div className="grid grid-cols-2 gap-4 mb-6">
                       {[
-                        { label: '筋肉をつけたい', value: '筋肉を大きくしたい' },
-                        { label: '体力をつけたい', value: '体力・持久力向上' },
-                        { label: '健康になりたい', value: '健康維持・改善' },
-                        { label: 'モテたい', value: '見た目を良くしたい' },
-                        { label: '痩せたい', value: 'ダイエット・減量' },
-                        { label: 'スポーツ向上', value: 'スポーツパフォーマンス向上' }
+                        { label: t('goalOptions.buildMuscle'), value: '筋肉を大きくしたい' },
+                        { label: t('goalOptions.improveStamina'), value: '体力・持久力向上' },
+                        { label: t('goalOptions.stayHealthy'), value: '健康維持・改善' },
+                        { label: t('goalOptions.lookBetter'), value: '見た目を良くしたい' },
+                        { label: t('goalOptions.loseWeight'), value: 'ダイエット・減量' },
+                        { label: t('goalOptions.improveSports'), value: 'スポーツパフォーマンス向上' }
                       ].map((goal) => {
                         const IconComponent = getGoalIcon(goal.value)
                         return (
@@ -662,7 +732,7 @@ function App() {
                     
                     <div className="mb-6">
                       <label className={`block text-base font-bold mb-2 ${darkMode ? 'text-gray-100' : 'text-gray-700'}`}>
-                        その他の目標（任意）
+                        {t('otherGoalsLabel')}
                       </label>
                       <input
                         type="text"
@@ -673,7 +743,7 @@ function App() {
                             ? 'bg-gray-800 border-gray-600 text-gray-100 placeholder-gray-300' 
                             : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
                         } focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all`}
-                        placeholder="他に目標があれば入力..."
+                        placeholder={t('otherGoalsPlaceholder')}
                       />
                     </div>
                     
@@ -685,7 +755,7 @@ function App() {
                         }`}
                       >
                         <ArrowLeft className="mr-2 w-5 h-5" />
-                        戻る
+                        {t('back')}
                       </button>
                       <button
                         onClick={() => {
@@ -701,7 +771,7 @@ function App() {
                             : darkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-200 text-gray-400'
                         }`}
                       >
-                        次へ
+                        {t('next')}
                         <ChevronRight className="ml-2 w-5 h-5" />
                       </button>
                     </div>
@@ -716,19 +786,19 @@ function App() {
                         <Home className="w-10 h-10 text-white" />
                       </div>
                       <h3 className={`text-2xl font-bold mb-2 ${darkMode ? 'text-white text-contrast-dark' : 'text-gray-900 text-contrast'}`}>
-                        トレーニング環境を教えてください
+                        {t('profileStep3Title')}
                       </h3>
                       <p className={`text-base font-medium ${darkMode ? 'text-gray-200' : 'text-gray-600'}`}>
-                        あなたの環境に合わせたプログラムを作成します
+                        {t('profileStep3Description')}
                       </p>
                     </div>
                     
                     <div className="grid grid-cols-1 gap-4 mb-6">
                       {[
-                        { label: 'ジムに通っている', desc: 'フル装備のジムが利用可能', value: 'ジムに通っている（フル装備）' },
-                        { label: '自宅でダンベル', desc: 'ダンベルとベンチがある', value: '自宅トレーニング（ダンベルとベンチ）' },
-                        { label: '自重トレーニング', desc: '器具なしでトレーニング', value: '自重トレーニングのみ' },
-                        { label: 'ミニマル装備', desc: '最小限の器具', value: 'ミニマル装備（抵抗バンドなど）' }
+                        { label: t('environments.gym'), desc: t('environments.gymDesc'), value: 'ジムに通っている（フル装備）' },
+                        { label: t('environments.homeDumbbell'), desc: t('environments.homeDumbbellDesc'), value: '自宅トレーニング（ダンベルとベンチ）' },
+                        { label: t('environments.bodyweight'), desc: t('environments.bodyweightDesc'), value: '自重トレーニングのみ' },
+                        { label: t('environments.minimal'), desc: t('environments.minimalDesc'), value: 'ミニマル装備（抵抗バンドなど）' }
                       ].map((env) => {
                         const IconComponent = getEnvironmentIcon(env.value)
                         return (
@@ -774,7 +844,7 @@ function App() {
                     
                     <div className="mb-6">
                       <label className={`block text-base font-bold mb-2 ${darkMode ? 'text-gray-100' : 'text-gray-700'}`}>
-                        詳細を追加（任意）
+                        {t('detailsLabel')}
                       </label>
                       <input
                         type="text"
@@ -785,7 +855,7 @@ function App() {
                             ? 'bg-gray-800 border-gray-600 text-gray-100 placeholder-gray-300' 
                             : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
                         } focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all`}
-                        placeholder="例: 週3回ジムに通える、朝しか時間がない"
+                        placeholder={t('detailsPlaceholder')}
                       />
                     </div>
                     
@@ -797,7 +867,7 @@ function App() {
                         }`}
                       >
                         <ArrowLeft className="mr-2 w-5 h-5" />
-                        戻る
+                        {t('back')}
                       </button>
                       <button
                         onClick={() => {
@@ -816,7 +886,7 @@ function App() {
                         }`}
                       >
                         <CheckCircle2 className="mr-2 w-5 h-5" />
-                        始める！
+                        {t('start')}
                       </button>
                     </div>
                   </div>
@@ -827,20 +897,20 @@ function App() {
                   <div className={`mt-6 p-6 rounded-xl ${darkMode ? 'neumorphism-dark' : 'neumorphism'} text-center`}>
                     <CheckCircle2 className="w-12 h-12 mx-auto mb-4 text-green-500 success-glow" />
                     <h3 className={`text-xl font-bold mb-2 ${darkMode ? 'text-white text-contrast-dark' : 'text-gray-900 text-contrast'}`}>
-                      プロフィール設定完了！
+                      {t('profileComplete')}
                     </h3>
                     <p className={`text-base font-medium mb-4 ${darkMode ? 'text-gray-200' : 'text-gray-600'}`}>
-                      プロンプトタブで始めましょう
+                      {t('profileCompleteDescription')}
                     </p>
                     <div className="space-y-2 text-left">
                       <p className={`text-base font-medium ${darkMode ? 'text-gray-100' : 'text-gray-700'}`}>
-                        <strong>名前:</strong> {profile.name}
+                        <strong>{t('name')}:</strong> {profile.name}
                       </p>
                       <p className={`text-base font-medium ${darkMode ? 'text-gray-100' : 'text-gray-700'}`}>
-                        <strong>目標:</strong> {profile.goals}
+                        <strong>{t('goals')}:</strong> {profile.goals}
                       </p>
                       <p className={`text-base font-medium ${darkMode ? 'text-gray-100' : 'text-gray-700'}`}>
-                        <strong>環境:</strong> {profile.environment}
+                        <strong>{t('environment')}:</strong> {profile.environment}
                       </p>
                     </div>
                     <button
@@ -855,7 +925,7 @@ function App() {
                         darkMode ? 'bg-gray-700 text-gray-100 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                       }`}
                     >
-                      プロフィールを編集
+                      {t('editProfile')}
                     </button>
                   </div>
                 )}
@@ -869,10 +939,10 @@ function App() {
                 {context && profile && profileStep === 1 && (
                   <div className={`mt-6 p-4 rounded-xl ${darkMode ? 'neumorphism-dark' : 'neumorphism'}`}>
                     <p className={`text-base font-medium ${darkMode ? 'text-gray-100' : 'text-gray-700'}`}>
-                      現在のセッション: <span className="font-bold health-text text-lg">{context.sessionNumber}</span> ({getSessionTitle(context.sessionNumber)})
+                      {t('currentSession')}: <span className="font-bold health-text text-lg">{context.sessionNumber}</span> ({getSessionTitle(context.sessionNumber)})
                     </p>
                     <p className={`text-base font-medium ${darkMode ? 'text-gray-100' : 'text-gray-700'}`}>
-                      サイクル: <span className="font-bold health-text text-lg">{context.cycleNumber}</span>
+                      {t('cycle')}: <span className="font-bold health-text text-lg">{context.cycleNumber}</span>
                     </p>
                   </div>
                 )}
@@ -886,7 +956,7 @@ function App() {
                 <div className="flex justify-between items-center mb-6">
                   <h2 className={`text-3xl font-bold ${darkMode ? 'text-white text-contrast-dark' : 'text-gray-900 text-contrast'}`}>
                     <BookOpen className="inline w-8 h-8 mr-3 text-orange-500 energy-glow" />
-                    プロンプトライブラリ
+                    {t('promptLibrary')}
                   </h2>
                   <div className="flex items-center space-x-4">
                     <button
@@ -898,7 +968,7 @@ function App() {
                       }`}
                     >
                       <Star className="w-4 h-4 mr-2" />
-                      メタプロンプトのみ
+                      {t('metaPromptsOnly')}
                     </button>
                   </div>
                 </div>
@@ -912,7 +982,7 @@ function App() {
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="プロンプトを検索..."
+                        placeholder={t('searchPlaceholder')}
                         className={`w-full pl-12 pr-4 py-3 text-base font-medium rounded-xl border ${
                           darkMode 
                             ? 'bg-gray-800 border-gray-600 text-gray-100 placeholder-gray-300' 
@@ -934,12 +1004,12 @@ function App() {
                             : 'bg-white border-gray-300 text-gray-900'
                         } focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all`}
                       >
-                        <option value="all">全カテゴリ</option>
-                        <option value="training">筋トレ</option>
-                        <option value="nutrition">栄養</option>
-                        <option value="analysis">分析</option>
-                        <option value="planning">計画</option>
-                        <option value="custom">カスタム</option>
+                        <option value="all">{t('allCategories')}</option>
+                        <option value="training">{t('categories.training')}</option>
+                        <option value="nutrition">{t('categories.nutrition')}</option>
+                        <option value="analysis">{t('categories.analysis')}</option>
+                        <option value="planning">{t('categories.planning')}</option>
+                        <option value="custom">{t('categories.custom')}</option>
                       </select>
                     </div>
                   </div>
@@ -953,7 +1023,7 @@ function App() {
                         <CustomIcon size={64} className={darkMode ? 'text-gray-600' : 'text-gray-400'} />
                       </div>
                       <p className={`text-lg font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                        プロンプトが見つかりませんでした
+                        {t('noPromptsFound')}
                       </p>
                     </div>
                   ) : (
@@ -972,7 +1042,7 @@ function App() {
                             </div>
                             {prompt.isMetaPrompt && (
                               <div className="badge-meta">
-                                META
+                                {t('meta')}
                               </div>
                             )}
                             <span className={`badge-modern ${
@@ -983,7 +1053,7 @@ function App() {
                           </div>
                           <div className="flex items-center space-x-1 text-sm text-gray-500">
                             <span>{prompt.usageCount}</span>
-                            <span>回使用</span>
+                            <span>{t('timesUsed')}</span>
                           </div>
                         </div>
                         
@@ -995,7 +1065,7 @@ function App() {
                           <div className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                             {prompt.lastUsed 
                               ? `${new Date(prompt.lastUsed).toLocaleDateString('ja-JP')}`
-                              : '未使用'
+                              : t('unused')
                             }
                           </div>
                           <div className="flex space-x-2">
@@ -1006,7 +1076,7 @@ function App() {
                                   ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' 
                                   : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
                               }`}
-                              title="編集"
+                              title={t('edit')}
                             >
                               <Edit3 size={16} />
                             </button>
@@ -1015,7 +1085,7 @@ function App() {
                               className="px-4 py-2 btn-gradient text-white rounded-xl font-bold text-sm transition-all energy-glow hover:scale-105"
                             >
                               <Copy className="inline w-4 h-4 mr-2" />
-                              コピー
+                              {t('copy')}
                             </button>
                           </div>
                         </div>
@@ -1030,29 +1100,27 @@ function App() {
           {activeTab === 'settings' && (
             <div className={`max-w-2xl mx-auto ${darkMode ? 'glass-effect-dark' : 'glass-effect'} rounded-2xl p-6 card-hover fade-in`}>
               <h2 className={`text-3xl font-bold mb-6 ${darkMode ? 'text-white text-contrast-dark' : 'text-gray-900 text-contrast'}`}>
-                使い方
+                {t('howToUse')}
               </h2>
               
               <div className="space-y-4">
                 <div className={`p-4 rounded-xl ${darkMode ? 'neumorphism-dark' : 'neumorphism'} card-hover`}>
                   <h3 className={`text-xl font-bold mb-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                    <span className="energy-text">使い方</span>
+                    <span className="energy-text">{t('usage')}</span>
                   </h3>
                   <ol className={`list-decimal list-inside space-y-3 text-base font-medium ${darkMode ? 'text-gray-100' : 'text-gray-700'}`}>
-                    <li className="hover:translate-x-1 transition-transform">「プロフィール」タブで情報を入力</li>
-                    <li className="hover:translate-x-1 transition-transform">「プロンプト」タブでプロンプトをコピー</li>
-                    <li className="hover:translate-x-1 transition-transform">Claude AIに貼り付けて実行</li>
-                    <li className="hover:translate-x-1 transition-transform">Claudeの結果を「Claudeの結果」エリアに貼り付け</li>
-                    <li className="hover:translate-x-1 transition-transform">自動的に次のセッションのプロンプトが生成されます</li>
+                    {t('usageSteps').map((step: string, index: number) => (
+                      <li key={index} className="hover:translate-x-1 transition-transform">{step}</li>
+                    ))}
                   </ol>
                 </div>
                 
                 <div className={`p-4 rounded-xl ${darkMode ? 'neumorphism-dark' : 'neumorphism'} card-hover`}>
                   <h3 className={`text-xl font-bold mb-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                    <span className="health-text">トレーニングサイクル</span>
+                    <span className="health-text">{t('trainingCycle')}</span>
                   </h3>
                   <p className={`text-base font-medium ${darkMode ? 'text-gray-100' : 'text-gray-700'}`}>
-                    <span className="font-bold achievement-text text-lg streak-glow">8セッション</span>で<span className="font-bold health-text text-lg">1サイクル</span>です。サイクル完了後、トレーニングメニューが自動的に再構成されます。
+                    <span className="font-bold achievement-text text-lg streak-glow">8{t('session')}</span>{t('trainingCycleDescription')}
                   </p>
                 </div>
               </div>
@@ -1073,7 +1141,7 @@ function App() {
                 }`}
               >
                 <FileText size={26} />
-                <span className="text-sm font-bold">プロンプト</span>
+                <span className="text-sm font-bold">{t('promptTab')}</span>
               </button>
               
               <button
@@ -1085,7 +1153,7 @@ function App() {
                 }`}
               >
                 <User size={26} />
-                <span className="text-sm font-bold">プロフィール</span>
+                <span className="text-sm font-bold">{t('profileTab')}</span>
               </button>
               
               <button
@@ -1097,7 +1165,7 @@ function App() {
                 }`}
               >
                 <BookOpen size={26} />
-                <span className="text-sm font-bold">ライブラリ</span>
+                <span className="text-sm font-bold">{t('libraryTab')}</span>
               </button>
               
               <button
@@ -1109,7 +1177,7 @@ function App() {
                 }`}
               >
                 <Settings size={26} />
-                <span className="text-sm font-bold">使い方</span>
+                <span className="text-sm font-bold">{t('settingsTab')}</span>
               </button>
             </div>
           </div>
@@ -1142,7 +1210,7 @@ function App() {
           <div className={`w-full max-w-4xl ${darkMode ? 'card-modern-dark' : 'card-modern'} p-6 max-h-[90vh] overflow-y-auto`}>
             <div className="flex justify-between items-center mb-4">
               <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                プロンプト編集
+                {t('editPrompt')}
               </h2>
               <button
                 onClick={handleCancelEdit}
@@ -1168,7 +1236,7 @@ function App() {
                     ? 'bg-gray-800 border-gray-600 text-gray-100 placeholder-gray-400' 
                     : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
                 } focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all`}
-                placeholder="プロンプトの内容を編集..."
+                placeholder={t('editPlaceholder')}
               />
             </div>
             
@@ -1181,14 +1249,14 @@ function App() {
                     : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
                 }`}
               >
-                キャンセル
+                {t('cancel')}
               </button>
               <button
                 onClick={handleSaveEdit}
                 className="px-6 py-2 btn-gradient text-white rounded-xl font-bold transition-all energy-glow hover:scale-105 flex items-center"
               >
                 <Save size={18} className="mr-2" />
-                保存
+                {t('save')}
               </button>
             </div>
           </div>
