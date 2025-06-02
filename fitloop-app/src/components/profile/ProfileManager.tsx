@@ -26,7 +26,7 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
     gender: 'male',
     weight: 70,
     height: 170,
-    goals: '健康的な体づくりと筋力アップ。週3回のトレーニングで基礎体力向上を目指します。',
+    goals: '筋肉をつけてカッコよくなりたい, 健康的な体で長生きしたい',
     environment: 'ジム（フィットネスクラブ）',
     experience: 'beginner',
     preferences: {
@@ -44,6 +44,9 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
   })
   
   const [focusArea, setFocusArea] = useState<string>('')
+  const [selectedGoals, setSelectedGoals] = useState<string[]>([])
+  const [customGoal, setCustomGoal] = useState<string>('')
+  const [showCustomGoal, setShowCustomGoal] = useState<boolean>(false)
   
   const equipmentOptions = [
     'ダンベル', 'バーベル', 'ケトルベル', 'レジスタンスバンド',
@@ -54,12 +57,106 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
     '胸筋', '背筋', '肩', '腕', '腹筋', '脚', '全身', '体幹'
   ]
 
+  const goalOptions = [
+    {
+      id: 'muscle_gain',
+      title: '筋肉をつけてカッコよくなりたい',
+      description: '引き締まったボディで自信を持ちたい',
+      emoji: '💪'
+    },
+    {
+      id: 'weight_loss',
+      title: '体重を減らして軽やかに動きたい',
+      description: '理想の体型で毎日をアクティブに',
+      emoji: '✨'
+    },
+    {
+      id: 'strength',
+      title: '力強くなって日常をラクに',
+      description: '重い物を持つのも、階段を登るのも楽々',
+      emoji: '🚀'
+    },
+    {
+      id: 'health',
+      title: '健康的な体で長生きしたい',
+      description: '病気知らず、エネルギッシュな毎日を',
+      emoji: '❤️'
+    },
+    {
+      id: 'endurance',
+      title: '持久力をつけて疲れ知らず',
+      description: '一日中アクティブに動けるスタミナを',
+      emoji: '🏃'
+    },
+    {
+      id: 'flexibility',
+      title: '柔軟性を高めて体の不調を解消',
+      description: '肩こり、腰痛とおさらばして快適に',
+      emoji: '🧘'
+    },
+    {
+      id: 'confidence',
+      title: '自信をつけて人生を変えたい',
+      description: '鏡の中の自分を好きになって積極的に',
+      emoji: '🌟'
+    },
+    {
+      id: 'stress_relief',
+      title: 'ストレス発散で心をスッキリ',
+      description: '運動でメンタルもリフレッシュ',
+      emoji: '😌'
+    }
+  ]
+
   useEffect(() => {
     if (initialProfile) {
       setProfile(initialProfile)
       setEditMode(false)
+      // 目標を選択状態に変換
+      const goals = initialProfile.goals.split(',').map(g => g.trim()).filter(Boolean)
+      const matchedGoals = goals.map(goal => {
+        const option = goalOptions.find(opt => goal.includes(opt.title.substring(0, 10)))
+        return option ? option.id : null
+      }).filter(Boolean) as string[]
+      setSelectedGoals(matchedGoals)
     }
   }, [initialProfile])
+
+  const toggleGoal = (goalId: string) => {
+    setSelectedGoals(prev => {
+      const newGoals = prev.includes(goalId)
+        ? prev.filter(id => id !== goalId)
+        : [...prev, goalId]
+      
+      // プロファイルの目標を更新
+      const goalTexts = newGoals.map(id => {
+        const option = goalOptions.find(opt => opt.id === id)
+        return option ? option.title : ''
+      }).filter(Boolean)
+      
+      setProfile(prev => ({
+        ...prev,
+        goals: goalTexts.join(', ')
+      }))
+      
+      return newGoals
+    })
+  }
+
+  const addCustomGoal = () => {
+    if (customGoal.trim()) {
+      const currentGoals = profile.goals ? profile.goals.split(',').map(g => g.trim()).filter(Boolean) : []
+      const newGoals = [...currentGoals, customGoal.trim()]
+      
+      setProfile(prev => ({
+        ...prev,
+        goals: newGoals.join(', ')
+      }))
+      
+      setCustomGoal('')
+      setShowCustomGoal(false)
+    }
+  }
 
   const generateProfileBasedPrompt = (profile: UserProfile): string => {
     const equipment = profile.preferences.equipment.length > 0 
@@ -339,24 +436,139 @@ ${profile.preferences.focusAreas.map(area => {
         </div>
       </div>
 
-      {/* 目標 */}
+      {/* 目標 - 心理学的アプローチ */}
       <div className="mb-8">
-        <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-          <Target className="inline w-4 h-4 mr-1" />
-          フィットネス目標
-        </label>
-        <textarea
-          value={profile.goals}
-          onChange={(e) => setProfile(prev => ({ ...prev, goals: e.target.value }))}
-          disabled={!editMode}
-          rows={3}
-          className={`w-full px-4 py-3 rounded-xl border-2 transition-all ${
-            darkMode 
-              ? 'bg-gray-800 border-gray-700 text-white focus:border-purple-500' 
-              : 'bg-white border-gray-200 text-gray-900 focus:border-purple-500'
-          } ${!editMode ? 'opacity-60' : ''}`}
-          placeholder="例: 筋力アップ、体重減少、健康維持..."
-        />
+        <div className="flex items-center gap-2 mb-4">
+          <Target className={`w-5 h-5 ${darkMode ? 'text-purple-400' : 'text-purple-500'}`} />
+          <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+            あなたの理想の未来は？
+          </h3>
+          <span className="text-xl">🌟</span>
+        </div>
+        <div className={`p-4 rounded-xl mb-6 ${darkMode ? 'bg-purple-900/20 border border-purple-700/30' : 'bg-purple-50 border border-purple-200'}`}>
+          <p className={`text-sm ${darkMode ? 'text-purple-200' : 'text-purple-700'}`}>
+            💭 <strong>誰でも簡単！</strong> 3ヶ月後の理想のあなたをイメージして、ワクワクする目標をタップしてください。複数選択OK！
+          </p>
+        </div>
+
+        {editMode ? (
+          <div className="space-y-4">
+            {/* 選択式目標オプション */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {goalOptions.map(goal => (
+                <button
+                  key={goal.id}
+                  onClick={() => toggleGoal(goal.id)}
+                  className={`group p-4 rounded-2xl border-2 transition-all duration-300 text-left ${
+                    selectedGoals.includes(goal.id)
+                      ? darkMode 
+                        ? 'bg-gradient-to-br from-purple-600/20 to-pink-600/20 border-purple-500 transform scale-105'
+                        : 'bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-purple-500 transform scale-105'
+                      : darkMode
+                        ? 'bg-gray-800/50 border-gray-700 hover:border-purple-400 hover:bg-gray-800'
+                        : 'bg-white border-gray-200 hover:border-purple-400 hover:shadow-md'
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className={`text-2xl transition-transform ${
+                      selectedGoals.includes(goal.id) ? 'scale-110' : 'group-hover:scale-105'
+                    }`}>
+                      {goal.emoji}
+                    </div>
+                    <div className="flex-1">
+                      <h4 className={`font-semibold text-base mb-1 ${
+                        selectedGoals.includes(goal.id)
+                          ? darkMode ? 'text-purple-300' : 'text-purple-700'
+                          : darkMode ? 'text-white' : 'text-gray-900'
+                      }`}>
+                        {goal.title}
+                      </h4>
+                      <p className={`text-sm ${
+                        selectedGoals.includes(goal.id)
+                          ? darkMode ? 'text-purple-200' : 'text-purple-600'
+                          : darkMode ? 'text-gray-400' : 'text-gray-600'
+                      }`}>
+                        {goal.description}
+                      </p>
+                      {selectedGoals.includes(goal.id) && (
+                        <div className="mt-2">
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                            darkMode ? 'bg-purple-500/30 text-purple-300' : 'bg-purple-500/20 text-purple-700'
+                          }`}>
+                            ✓ 選択中
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* カスタム目標 */}
+            <div className="mt-6">
+              <button
+                onClick={() => setShowCustomGoal(!showCustomGoal)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${
+                  darkMode 
+                    ? 'bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700'
+                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-200'
+                }`}
+              >
+                <span className="text-lg">✨</span>
+                <span className="font-medium">オリジナルの目標を追加</span>
+                <span className={`transition-transform ${showCustomGoal ? 'rotate-180' : ''}`}>▼</span>
+              </button>
+              
+              {showCustomGoal && (
+                <div className="mt-3 space-y-3">
+                  <input
+                    type="text"
+                    value={customGoal}
+                    onChange={(e) => setCustomGoal(e.target.value)}
+                    placeholder="例: マラソン完走、ベンチプレス100kg..."
+                    className={`w-full px-4 py-3 rounded-xl border-2 transition-all ${
+                      darkMode 
+                        ? 'bg-gray-800 border-gray-700 text-white focus:border-purple-500' 
+                        : 'bg-white border-gray-200 text-gray-900 focus:border-purple-500'
+                    }`}
+                  />
+                  <button
+                    onClick={addCustomGoal}
+                    disabled={!customGoal.trim()}
+                    className={`px-4 py-2 rounded-xl transition-all ${
+                      customGoal.trim()
+                        ? darkMode 
+                          ? 'bg-purple-600 hover:bg-purple-700 text-white'
+                          : 'bg-purple-500 hover:bg-purple-600 text-white'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
+                  >
+                    目標を追加
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {profile.goals.split(',').filter(g => g.trim()).map((goal, index) => (
+              <div
+                key={index}
+                className={`p-4 rounded-xl border ${
+                  darkMode 
+                    ? 'bg-gray-800/50 border-gray-700 text-gray-300'
+                    : 'bg-gray-50 border-gray-200 text-gray-700'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">🎯</span>
+                  <span className="font-medium">{goal.trim()}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* 環境 */}
