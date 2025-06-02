@@ -5,6 +5,9 @@ import { PromptDisplay } from './components/prompt/PromptDisplay'
 import { AIResponseArea } from './components/prompt/AIResponseArea'
 import { ProgressChart, MuscleBalanceChart } from './components/common/ProgressChart'
 import { WorkoutTracker } from './components/common/WorkoutTracker'
+import { ProfileManager } from './components/profile/ProfileManager'
+import { PromptLibrary } from './components/library/PromptLibrary'
+import { Settings } from './components/settings/Settings'
 import { useTabs } from './hooks/useTabs'
 import { useProfile } from './hooks/useProfile'
 import { useTranslation } from './hooks/useTranslation'
@@ -317,11 +320,11 @@ function App() {
     <div className={`min-h-screen ${darkMode ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-black' : 'bg-gradient-to-br from-gray-50 via-white to-gray-100'} flex flex-col`}>
       <Header />
 
-      <main className="flex-1 flex flex-col">
-        <div className="flex-1 max-w-7xl mx-auto px-6 py-8 w-full">
+      <main className="flex-1 flex flex-col pb-20">
+        <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-8 w-full">
           {activeTab === 'prompt' && (
-            <div className="space-y-8">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="space-y-6 sm:space-y-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
                 <PromptDisplay
                   prompt={currentPrompt}
                   onCopy={handleCopyPrompt}
@@ -359,51 +362,23 @@ function App() {
           )}
 
           {activeTab === 'profile' && (
-            <div className={`max-w-3xl mx-auto ${darkMode ? 'card-modern-dark' : 'card-modern'} p-8 reveal-animation`}>
-              <h2 className={`text-hero ${darkMode ? 'text-white' : 'text-gray-900'} leading-tight mb-6`}>
-                {t('profileTab')}
-              </h2>
-              <p className={`text-lg ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                Profile management component will be implemented here
-              </p>
-              {profile && (
-                <div className="mt-6 space-y-2">
-                  <p><strong>{t('name')}:</strong> {profile.name}</p>
-                  <p><strong>{t('goals')}:</strong> {profile.goals}</p>
-                  <p><strong>{t('environment')}:</strong> {profile.environment}</p>
-                </div>
-              )}
+            <div className="max-w-4xl mx-auto page-transition">
+              <ProfileManager 
+                profile={profile} 
+                onProfileUpdate={loadData}
+              />
             </div>
           )}
 
           {activeTab === 'library' && (
-            <div className={`max-w-6xl mx-auto ${darkMode ? 'glass-effect-dark' : 'glass-effect'} rounded-2xl p-6 card-hover fade-in`}>
-              <h2 className={`text-3xl font-bold ${darkMode ? 'text-white text-contrast-dark' : 'text-gray-900 text-contrast'} mb-6`}>
-                {t('promptLibrary')}
-              </h2>
-              <p className={`text-lg ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                Prompt library component will be implemented here
-              </p>
+            <div className="page-transition -mx-6 -my-8">
+              <PromptLibrary />
             </div>
           )}
 
           {activeTab === 'settings' && (
-            <div className={`max-w-2xl mx-auto ${darkMode ? 'glass-effect-dark' : 'glass-effect'} rounded-2xl p-6 card-hover fade-in`}>
-              <h2 className={`text-3xl font-bold mb-6 ${darkMode ? 'text-white text-contrast-dark' : 'text-gray-900 text-contrast'}`}>
-                {t('howToUse')}
-              </h2>
-              <div className="space-y-4">
-                <div className={`p-4 rounded-xl ${darkMode ? 'neumorphism-dark' : 'neumorphism'} card-hover`}>
-                  <h3 className={`text-xl font-bold mb-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                    <span className="energy-text">{t('usage')}</span>
-                  </h3>
-                  <ol className={`list-decimal list-inside space-y-3 text-base font-medium ${darkMode ? 'text-gray-100' : 'text-gray-700'}`}>
-                    {t('usageSteps').map((step: string, index: number) => (
-                      <li key={index} className="hover:translate-x-1 transition-transform">{step}</li>
-                    ))}
-                  </ol>
-                </div>
-              </div>
+            <div className="page-transition -mx-6 -my-8">
+              <Settings />
             </div>
           )}
         </div>
