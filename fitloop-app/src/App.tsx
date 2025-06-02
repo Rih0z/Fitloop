@@ -6,6 +6,7 @@ import { AIResponseArea } from './components/prompt/AIResponseArea'
 import { ProgressChart, MuscleBalanceChart } from './components/common/ProgressChart'
 import { WorkoutTracker } from './components/common/WorkoutTracker'
 import { ProfileManager } from './components/profile/ProfileManager'
+import { ProfileOnboarding } from './components/profile/ProfileOnboarding'
 import { PromptLibrary } from './components/library/PromptLibrary'
 import { Settings } from './components/settings/Settings'
 import { useTabs } from './hooks/useTabs'
@@ -44,11 +45,19 @@ function App() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saveMessage, setSaveMessage] = useState<string | null>(null)
+  const [showOnboarding, setShowOnboarding] = useState(false)
 
   // Load initial data
   useEffect(() => {
     loadData()
   }, [])
+
+  // Check if user needs onboarding
+  useEffect(() => {
+    if (!profileLoading && !profile) {
+      setShowOnboarding(true)
+    }
+  }, [profileLoading, profile])
 
   // Load learning data when profile changes
   useEffect(() => {
@@ -94,6 +103,12 @@ function App() {
     } catch (error) {
       console.error('Failed to load saved prompts:', error)
     }
+  }
+
+  const handleOnboardingComplete = async () => {
+    setShowOnboarding(false)
+    await loadData()
+    changeTab('prompt')
   }
 
   const loadLearningData = async () => {
@@ -313,6 +328,15 @@ function App() {
       <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gradient-to-br from-gray-900 to-black' : 'bg-gradient-to-br from-gray-50 to-white'}`}>
         <div className="loading-modern rounded-full h-16 w-16 border-4 border-orange-500/20 border-t-orange-500 animate-spin"></div>
       </div>
+    )
+  }
+
+  if (showOnboarding) {
+    return (
+      <ProfileOnboarding
+        onComplete={handleOnboardingComplete}
+        initialProfile={profile}
+      />
     )
   }
 
