@@ -3,19 +3,24 @@ import { Header } from './components/layout/Header'
 import { TabBar } from './components/layout/TabBar'
 import { PromptDisplay } from './components/prompt/PromptDisplay'
 import { AIResponseArea } from './components/prompt/AIResponseArea'
+import { ProgressChart, MuscleBalanceChart } from './components/common/ProgressChart'
+import { WorkoutTracker } from './components/common/WorkoutTracker'
 import { useTabs } from './hooks/useTabs'
 import { useProfile } from './hooks/useProfile'
 import { useTranslation } from './hooks/useTranslation'
 import { useTheme } from './hooks/useTheme'
 import { useClipboard } from './hooks/useClipboard'
 import { PromptService } from './services/PromptService'
+import { LearningService } from './services/LearningService'
 import { StorageManager } from './lib/db'
 import type { Context } from './models/context'
 import type { SavedPrompt } from './models/promptCollection'
+import type { AIResponse } from './interfaces/IAIService'
 import './App.css'
 
 const storage = new StorageManager()
 const promptService = new PromptService()
+const learningService = LearningService.getInstance()
 
 function App() {
   const { activeTab, changeTab } = useTabs()
@@ -28,6 +33,10 @@ function App() {
   const [context, setContext] = useState<Context | null>(null)
   const [currentPrompt, setCurrentPrompt] = useState<string>('')
   const [aiResponse, setAiResponse] = useState('')
+  const [aiResponseData, setAiResponseData] = useState<AIResponse | null>(null)
+  const [learningData, setLearningData] = useState<any>(null)
+  const [progressData, setProgressData] = useState<any[]>([])
+  const [recommendations, setRecommendations] = useState<any[]>([])
   const [, setSavedPrompts] = useState<SavedPrompt[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -37,6 +46,13 @@ function App() {
   useEffect(() => {
     loadData()
   }, [])
+
+  // Load learning data when profile changes
+  useEffect(() => {
+    if (profile) {
+      loadLearningData()
+    }
+  }, [profile])
 
   // Generate prompt when profile or context changes
   useEffect(() => {
@@ -74,6 +90,94 @@ function App() {
       setSavedPrompts(prompts)
     } catch (error) {
       console.error('Failed to load saved prompts:', error)
+    }
+  }
+
+  const loadLearningData = async () => {
+    if (!profile) return
+
+    try {
+      // 進捗分析を取得
+      const analysis = await promptService.getProgressAnalysis(profile.name)
+      setLearningData(analysis)
+
+      // エクササイズ一覧を取得
+      const exercises = await learningService.getAllExercises(profile.name)
+      
+      // 各エクササイズの進捗データを取得
+      const progressPromises = exercises.slice(0, 5).map(async exercise => {
+        const progress = await learningService.getExerciseProgress(exercise, profile.name)
+        return {
+          exercise,
+          history: progress.history.slice(0, 7).map(h => ({
+            weight: h.weight,
+            date: h.timestamp,
+            reps: h.reps,
+            sets: h.sets
+          })),
+          trend: progress.trend
+        }
+      })
+
+      const progressResults = await Promise.all(progressPromises)
+      setProgressData(progressResults)
+
+      // 推奨重量を取得
+      const recommendationPromises = exercises.slice(0, 10).map(async exercise => {
+        const rec = await promptService.getWeightRecommendation(profile.name, exercise)
+        return {
+          exercise,
+          weight: rec.weight,
+          reasoning: rec.reasoning
+        }
+      })
+
+      const recommendationResults = await Promise.all(recommendationPromises)
+      setRecommendations(recommendationResults)
+
+    } catch (error) {
+      console.error('Failed to load learning data:', error)
+    }
+  }
+
+  const handleGenerateAI = async () => {
+    if (!profile || !context) return
+
+    setLoading(true)
+    try {
+      const response = await promptService.generateAIResponse(profile, context, language)
+      setAiResponseData(response)
+      setAiResponse(response.content)
+    } catch (error) {
+      setError('AI応答の生成に失敗しました。')
+      console.error('Failed to generate AI response:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSaveWorkout = async (workout: any) => {
+    if (!profile) return
+
+    try {
+      await promptService.trackWorkout(
+        profile.name,
+        workout.exercise,
+        workout.weight,
+        workout.reps,
+        workout.sets,
+        workout.difficulty,
+        workout.notes
+      )
+      
+      // 学習データを再読み込み
+      await loadLearningData()
+      
+      setSaveMessage('ワークアウトを保存しました！')
+      setTimeout(() => setSaveMessage(null), 3000)
+    } catch (error) {
+      setError('ワークアウトの保存に失敗しました。')
+      console.error('Failed to save workout:', error)
     }
   }
 
@@ -216,19 +320,41 @@ function App() {
       <main className="flex-1 flex flex-col">
         <div className="flex-1 max-w-7xl mx-auto px-6 py-8 w-full">
           {activeTab === 'prompt' && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <PromptDisplay
-                prompt={currentPrompt}
-                onCopy={handleCopyPrompt}
-                copied={clipboard.copied}
-                loading={loading}
-              />
-              <AIResponseArea
-                response={aiResponse}
-                onResponseChange={setAiResponse}
-                onPaste={handlePasteResponse}
-                loading={loading}
-              />
+            <div className="space-y-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <PromptDisplay
+                  prompt={currentPrompt}
+                  onCopy={handleCopyPrompt}
+                  copied={clipboard.copied}
+                  loading={loading}
+                />
+                <AIResponseArea
+                  response={aiResponse}
+                  onResponseChange={setAiResponse}
+                  onPaste={handlePasteResponse}
+                  onGenerateAI={handleGenerateAI}
+                  aiResponse={aiResponseData}
+                  learningData={learningData}
+                  loading={loading}
+                />
+              </div>
+              
+              {/* 学習データの可視化 */}
+              {profile && (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <WorkoutTracker
+                    onSaveWorkout={handleSaveWorkout}
+                    recommendations={recommendations}
+                    className="lg:col-span-2"
+                  />
+                  <div className="space-y-6">
+                    <ProgressChart data={progressData} />
+                    {learningData && (
+                      <MuscleBalanceChart data={learningData.muscleBalance || { upperBody: 0, lowerBody: 0, core: 0 }} />
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

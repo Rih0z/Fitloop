@@ -1,12 +1,16 @@
-import React from 'react'
-import { ClipboardPaste } from 'lucide-react'
+import React, { useState } from 'react'
+import { ClipboardPaste, Brain, TrendingUp, Sparkles } from 'lucide-react'
 import { useTranslation } from '../../hooks/useTranslation'
 import { useTheme } from '../../hooks/useTheme'
+import type { AIResponse } from '../../interfaces/IAIService'
 
 interface AIResponseAreaProps {
   response: string
   onResponseChange: (response: string) => void
   onPaste: () => void
+  onGenerateAI?: () => Promise<void>
+  aiResponse?: AIResponse | null
+  learningData?: any
   loading?: boolean
 }
 
@@ -14,41 +18,167 @@ export const AIResponseArea: React.FC<AIResponseAreaProps> = ({
   response, 
   onResponseChange, 
   onPaste, 
+  onGenerateAI,
+  aiResponse,
+  learningData,
   loading = false 
 }) => {
   const { t } = useTranslation()
   const { darkMode } = useTheme()
+  const [activeTab, setActiveTab] = useState<'manual' | 'ai' | 'insights'>('manual')
+
+  const displayContent = () => {
+    switch (activeTab) {
+      case 'ai':
+        return aiResponse?.content || 'AI レスポンスはまだありません。'
+      case 'insights':
+        return learningData ? formatLearningData(learningData) : '学習データはまだありません。'
+      default:
+        return response
+    }
+  }
+
+  const formatLearningData = (data: any) => {
+    if (!data) return ''
+    
+    return `# 📊 あなたの進捗分析
+
+## 総合評価: ${data.overallProgress}
+
+### 🏋️ トレーニング状況
+- 週間頻度: ${data.consistency?.workoutsPerWeek || 0}回
+- 連続記録: ${data.consistency?.streak || 0}日
+- 最終トレーニング: ${data.consistency?.lastWorkout ? new Date(data.consistency.lastWorkout).toLocaleDateString('ja-JP') : '記録なし'}
+
+### 💪 筋肉バランス
+- 上半身: ${Math.round(data.muscleBalance?.upperBody || 0)}%
+- 下半身: ${Math.round(data.muscleBalance?.lowerBody || 0)}%
+- 体幹: ${Math.round(data.muscleBalance?.core || 0)}%
+
+### ✅ あなたの強み
+${(data.strengths || []).map((s: string) => `- ${s}`).join('\n')}
+
+### 🎯 改善ポイント
+${(data.areasForImprovement || []).map((a: string) => `- ${a}`).join('\n')}
+
+### 📋 推奨事項
+${(data.recommendations || []).map((r: string) => `- ${r}`).join('\n')}`
+  }
 
   return (
     <div className={`${darkMode ? 'card-modern-dark' : 'card-modern'} p-8 reveal-animation`}>
       <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className={`text-headline ${darkMode ? 'text-white' : 'text-gray-900'} mb-2`}>
-            {t('aiResponse')}
+            AI レスポンス & データ分析
           </h2>
           <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-            {t('aiResponseDescription')}
+            AIからの応答と学習データに基づく分析
           </p>
         </div>
+        <div className="flex gap-2">
+          {onGenerateAI && (
+            <button
+              onClick={onGenerateAI}
+              disabled={loading}
+              className={`btn-uber micro-bounce ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              <Brain className="inline w-4 h-4 mr-2" />
+              AI生成
+            </button>
+          )}
+          <button
+            onClick={onPaste}
+            disabled={loading}
+            className={`btn-uber micro-bounce ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            <ClipboardPaste className="inline w-4 h-4 mr-2" />
+            {t('paste')}
+          </button>
+        </div>
+      </div>
+
+      {/* タブナビゲーション */}
+      <div className="flex mb-6 border-b border-gray-200 dark:border-gray-700">
         <button
-          onClick={onPaste}
-          disabled={loading}
-          className={`btn-uber micro-bounce ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          onClick={() => setActiveTab('manual')}
+          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            activeTab === 'manual'
+              ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+              : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+          }`}
         >
-          <ClipboardPaste className="inline w-4 h-4 mr-2" />
-          {t('paste')}
+          <ClipboardPaste className="inline w-4 h-4 mr-1" />
+          手動入力
+        </button>
+        <button
+          onClick={() => setActiveTab('ai')}
+          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            activeTab === 'ai'
+              ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+              : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+          }`}
+        >
+          <Sparkles className="inline w-4 h-4 mr-1" />
+          AI応答
+        </button>
+        <button
+          onClick={() => setActiveTab('insights')}
+          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            activeTab === 'insights'
+              ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+              : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+          }`}
+        >
+          <TrendingUp className="inline w-4 h-4 mr-1" />
+          進捗分析
         </button>
       </div>
+
+      {/* AI応答のメタデータ */}
+      {activeTab === 'ai' && aiResponse && (
+        <div className={`mb-4 p-3 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-gray-50'}`}>
+          <div className="flex justify-between items-center text-sm">
+            <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              プロバイダー: {aiResponse.provider} | 
+              生成時間: {aiResponse.timestamp.toLocaleTimeString('ja-JP')}
+            </span>
+            {aiResponse.usage && (
+              <span className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                トークン: {aiResponse.usage.totalTokens}
+              </span>
+            )}
+          </div>
+          {aiResponse.error && (
+            <div className="mt-2 text-red-500 text-sm">
+              エラー: {aiResponse.error}
+            </div>
+          )}
+        </div>
+      )}
       
       <div className="modern-input">
         <textarea
-          value={response}
-          onChange={(e) => onResponseChange(e.target.value)}
-          placeholder={t('responsePlaceholder')}
-          disabled={loading}
+          value={displayContent()}
+          onChange={(e) => {
+            if (activeTab === 'manual') {
+              onResponseChange(e.target.value)
+            }
+          }}
+          placeholder={
+            activeTab === 'manual' 
+              ? t('responsePlaceholder')
+              : activeTab === 'ai'
+              ? 'AIからの応答がここに表示されます...'
+              : '学習データに基づく分析がここに表示されます...'
+          }
+          disabled={loading || activeTab !== 'manual'}
+          readOnly={activeTab !== 'manual'}
           className={`w-full h-[600px] text-lg leading-relaxed resize-none ${
             darkMode ? 'input-modern-dark' : 'input-modern'
-          } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          } ${loading ? 'opacity-50 cursor-not-allowed' : ''} ${
+            activeTab !== 'manual' ? 'cursor-default' : ''
+          }`}
         />
       </div>
     </div>

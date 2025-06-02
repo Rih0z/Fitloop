@@ -3,6 +3,20 @@ import type { UserProfile } from '../models/user'
 import type { Context } from '../models/context'
 import type { GeneratedPrompt, TrainingSession } from '../models/prompt'
 import type { PromptCollection, SavedPrompt } from '../models/promptCollection'
+import type { WorkoutMetrics } from '../interfaces/ILearningService'
+
+interface AIUsageStats {
+  id?: number
+  provider: 'claude' | 'chatgpt' | 'gemini'
+  requests: number
+  tokens: number
+  lastUsed: Date
+}
+
+interface WorkoutHistory extends WorkoutMetrics {
+  id?: string
+  createdAt: Date
+}
 
 export class FitLoopDatabase extends Dexie {
   profile!: Table<UserProfile>
@@ -11,16 +25,20 @@ export class FitLoopDatabase extends Dexie {
   sessions!: Table<TrainingSession>
   promptCollections!: Table<PromptCollection>
   savedPrompts!: Table<SavedPrompt>
+  aiUsageStats!: Table<AIUsageStats>
+  workoutHistory!: Table<WorkoutHistory>
 
   constructor() {
     super('FitLoopDB')
-    this.version(2).stores({
+    this.version(3).stores({
       profile: '++id',
       context: '++id',
       prompts: '++id, type, createdAt',
       sessions: '++id, date',
       promptCollections: '++id, category, createdAt',
-      savedPrompts: '++id, category, isMetaPrompt, createdAt, lastUsed'
+      savedPrompts: '++id, category, isMetaPrompt, createdAt, lastUsed',
+      aiUsageStats: '++id, provider, lastUsed',
+      workoutHistory: '++id, [userId+exercise], userId, exercise, timestamp, createdAt'
     })
   }
 }
