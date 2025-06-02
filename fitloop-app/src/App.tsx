@@ -314,11 +314,16 @@ function App() {
     await navigator.clipboard.writeText(currentPrompt)
     setCopiedPrompt(true)
     
-    // 現在のプロンプトを前回のプロンプトとして保存
+    // 現在のプロンプトを日付付きトレーニング記録として保存
     if (currentPrompt && context && profile) {
+      const today = new Date()
+      const month = today.getMonth() + 1
+      const day = today.getDate()
+      const dateTitle = `${month}月${day}日の筋トレ記録`
+      
       await storage.saveCurrentPromptAsLast(
         currentPrompt,
-        `${profile.name}さんのセッション${context.sessionNumber}`
+        dateTitle
       )
       await loadSavedPrompts() // リストを更新
     }
@@ -339,13 +344,18 @@ function App() {
           // Claude generated a new prompt with metadata
           setCurrentPrompt(text)
           
-          // Save the prompt as a template in the library
+          // Save the prompt as a template in the library with date format
+          const today = new Date()
+          const month = today.getMonth() + 1
+          const day = today.getDate()
+          const dateTitle = `${month}月${day}日の筋トレ記録`
+          
           await storage.savePromptToCollection({
-            title: `セッション${metadata.sessionNumber} - ${metadata.sessionName}`,
+            title: dateTitle,
             content: text,
-            description: `${profile.name}さんのセッション${metadata.sessionNumber}用プロンプト`,
+            description: `${profile.name}さんの${dateTitle}`,
             category: 'training',
-            tags: ['自動生成', `セッション${metadata.sessionNumber}`, metadata.sessionName],
+            tags: ['自動生成', `セッション${metadata.sessionNumber}`, metadata.sessionName, dateTitle],
             isMetaPrompt: true,
             createdAt: new Date(),
             updatedAt: new Date(),
@@ -375,13 +385,18 @@ function App() {
           const isPrompt = text.includes('トレーニング') || text.includes('セッション') || text.includes('エクササイズ')
           
           if (isPrompt && text.length > 500) {
-            // Save as a custom prompt template
+            // Save as a custom prompt template with date format
+            const today = new Date()
+            const month = today.getMonth() + 1
+            const day = today.getDate()
+            const dateTitle = `${month}月${day}日の筋トレ記録`
+            
             await storage.savePromptToCollection({
-              title: `カスタムプロンプト - ${new Date().toLocaleDateString('ja-JP')}`,
+              title: dateTitle,
               content: text,
-              description: `${profile.name}さんがAIから取得したプロンプト`,
+              description: `${profile.name}さんの${dateTitle}`,
               category: 'custom',
-              tags: ['AI生成', 'カスタム', `セッション${context.sessionNumber}`],
+              tags: ['AI生成', 'カスタム', `セッション${context.sessionNumber}`, dateTitle],
               isMetaPrompt: false,
               createdAt: new Date(),
               updatedAt: new Date(),
