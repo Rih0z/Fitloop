@@ -202,6 +202,18 @@ export class StorageManager {
   async deletePrompt(id: number): Promise<void> {
     await db.savedPrompts.delete(id)
   }
+
+  async deleteGeneratedPrompt(id: number): Promise<void> {
+    await db.prompts.delete(id)
+  }
+
+  async getGeneratedPrompts(): Promise<GeneratedPrompt[]> {
+    return await db.prompts.orderBy('createdAt').reverse().toArray()
+  }
+
+  async updateGeneratedPrompt(id: number, updates: Partial<GeneratedPrompt>): Promise<void> {
+    await db.prompts.update(id, updates)
+  }
   
   async updatePromptContent(id: number, content: string): Promise<void> {
     await db.savedPrompts.update(id, {

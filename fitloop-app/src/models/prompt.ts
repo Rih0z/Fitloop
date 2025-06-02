@@ -5,6 +5,8 @@ export interface GeneratedPrompt {
   metadata: any
   createdAt: Date
   used: boolean
+  source?: 'profile' | 'training' | 'manual'
+  title?: string
 }
 
 export interface TrainingSession {

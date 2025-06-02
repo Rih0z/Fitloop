@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { User, Target, Activity, TrendingUp, Save, Edit3, Plus, X } from 'lucide-react'
 import { useTheme } from '../../hooks/useTheme'
 import type { UserProfile } from '../../models/user'
+import type { GeneratedPrompt } from '../../models/prompt'
 import { StorageManager } from '../../lib/db'
 
 const storage = new StorageManager()
@@ -20,13 +21,13 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
   const { darkMode } = useTheme()
   const [editMode, setEditMode] = useState(!initialProfile)
   const [profile, setProfile] = useState<UserProfile>(initialProfile || {
-    name: '',
-    age: 25,
+    name: '山田 太郎',
+    age: 28,
     gender: 'male',
     weight: 70,
     height: 170,
-    goals: '',
-    environment: '',
+    goals: '健康的な体づくりと筋力アップ。週3回のトレーニングで基礎体力向上を目指します。',
+    environment: 'ジム（フィットネスクラブ）',
     experience: 'beginner',
     preferences: {
       intensity: 'medium',
@@ -34,15 +35,14 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
       timeAvailable: 45,
       workoutDuration: 60,
       workoutFrequency: 3,
-      preferredTime: 'morning',
-      equipment: [],
-      focusAreas: []
+      preferredTime: 'evening',
+      equipment: ['ダンベル', 'バーベル', 'ベンチ'],
+      focusAreas: ['胸筋', '背筋', '脚']
     },
     createdAt: new Date(),
     updatedAt: new Date()
   })
   
-  const [equipment, setEquipment] = useState<string>('')
   const [focusArea, setFocusArea] = useState<string>('')
   
   const equipmentOptions = [
@@ -61,9 +61,95 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
     }
   }, [initialProfile])
 
+  const generateProfileBasedPrompt = (profile: UserProfile): string => {
+    const equipment = profile.preferences.equipment.length > 0 
+      ? profile.preferences.equipment.join('、') 
+      : '自重のみ';
+    
+    const focusAreas = profile.preferences.focusAreas.length > 0 
+      ? profile.preferences.focusAreas.join('、') 
+      : '全身バランス良く';
+
+    return `# ${profile.name}さん専用トレーニングプロンプト
+
+## あなたのプロフィール
+- 年齢: ${profile.age}歳
+- 体重: ${profile.weight}kg、身長: ${profile.height}cm
+- 経験レベル: ${profile.experience === 'beginner' ? '初心者' : profile.experience === 'intermediate' ? '中級者' : '上級者'}
+- 目標: ${profile.goals}
+- 環境: ${profile.environment}
+
+## トレーニング設定
+- 頻度: 週${profile.preferences.workoutFrequency}回
+- 1回の時間: ${profile.preferences.workoutDuration}分
+- 希望時間帯: ${profile.preferences.preferredTime === 'morning' ? '朝' : profile.preferences.preferredTime === 'afternoon' ? '昼' : profile.preferences.preferredTime === 'evening' ? '夜' : 'いつでも'}
+- 利用器具: ${equipment}
+- 重点部位: ${focusAreas}
+
+## 今日のトレーニングメニュー
+
+### ウォームアップ (5-10分)
+- 軽い有酸素運動（ウォーキング、ジョギング）
+- 動的ストレッチ（肩回し、腰回し、膝上げ）
+- 関節の可動域を広げる準備運動
+
+### メインセット
+${profile.preferences.focusAreas.map(area => {
+  const exercises = {
+    '胸筋': ['腕立て伏せ', 'ベンチプレス', 'ダンベルフライ'],
+    '背筋': ['懸垂', 'ラットプルダウン', 'ベントオーバーロウ'],
+    '肩': ['ショルダープレス', 'サイドレイズ', 'フロントレイズ'],
+    '腕': ['アームカール', 'トライセップスエクステンション', 'ディップス'],
+    '腹筋': ['プランク', 'クランチ', 'レッグレイズ'],
+    '脚': ['スクワット', 'ランジ', 'レッグプレス'],
+    '全身': ['スクワット', '腕立て伏せ', 'プランク'],
+    '体幹': ['プランク', 'サイドプランク', 'バードドッグ']
+  };
+  const areaExercises = exercises[area as keyof typeof exercises] || ['基本エクササイズ'];
+  return `\n#### ${area}\n${areaExercises.map(ex => `- ${ex}: 3セット × 8-12回`).join('\n')}`;
+}).join('')}
+
+### クールダウン (5-10分)
+- 静的ストレッチ
+- 深呼吸とリラクゼーション
+- 水分補給
+
+## 記録してください
+1. 実際に行ったエクササイズと回数
+2. 使用した重量（該当する場合）
+3. セット間の疲労度 (1-10)
+4. 全体的な満足度
+5. 体調の変化
+
+## 次回への改善点
+- 今日の調子に応じて次回の負荷を調整
+- フォームの確認と改善
+- 新しいエクササイズの挑戦
+
+*このプロンプトはあなたのプロフィールに基づいて自動生成されました。*`;
+  };
+
   const handleSave = async () => {
     try {
       await storage.saveProfile(profile)
+      
+      // プロフィール保存時にパーソナライズされたプロンプトを生成・保存
+      const generatedPrompt: GeneratedPrompt = {
+        type: 'training',
+        content: generateProfileBasedPrompt(profile),
+        metadata: {
+          profileId: profile.id,
+          profileName: profile.name,
+          generatedFrom: 'profile'
+        },
+        createdAt: new Date(),
+        used: false,
+        source: 'profile',
+        title: `${profile.name}さん専用トレーニングプロンプト`
+      };
+      
+      await storage.savePrompt(generatedPrompt);
+      
       setEditMode(false)
       onProfileUpdate()
     } catch (error) {
@@ -71,18 +157,6 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
     }
   }
 
-  const handleAddEquipment = () => {
-    if (equipment && !profile.preferences.equipment.includes(equipment)) {
-      setProfile(prev => ({
-        ...prev,
-        preferences: {
-          ...prev.preferences,
-          equipment: [...prev.preferences.equipment, equipment]
-        }
-      }))
-      setEquipment('')
-    }
-  }
 
   const handleRemoveEquipment = (item: string) => {
     setProfile(prev => ({
@@ -421,31 +495,41 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
           </label>
           
           {editMode && (
-            <div className="flex gap-2 mb-3">
-              <select
-                value={equipment}
-                onChange={(e) => setEquipment(e.target.value)}
-                className={`flex-1 px-4 py-2 rounded-xl border-2 transition-all ${
-                  darkMode 
-                    ? 'bg-gray-800 border-gray-700 text-white focus:border-purple-500' 
-                    : 'bg-white border-gray-200 text-gray-900 focus:border-purple-500'
-                }`}
-              >
-                <option value="">器具を選択...</option>
+            <div className="space-y-3 mb-3">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                 {equipmentOptions.map(opt => (
-                  <option key={opt} value={opt}>{opt}</option>
+                  <button
+                    key={opt}
+                    onClick={() => {
+                      if (profile.preferences.equipment.includes(opt)) {
+                        handleRemoveEquipment(opt);
+                      } else {
+                        setProfile(prev => ({
+                          ...prev,
+                          preferences: {
+                            ...prev.preferences,
+                            equipment: [...prev.preferences.equipment, opt]
+                          }
+                        }));
+                      }
+                    }}
+                    className={`p-3 rounded-xl border-2 text-sm transition-all ${
+                      profile.preferences.equipment.includes(opt)
+                        ? darkMode 
+                          ? 'bg-purple-600 border-purple-600 text-white'
+                          : 'bg-purple-500 border-purple-500 text-white'
+                        : darkMode
+                          ? 'bg-gray-800 border-gray-700 text-gray-300 hover:border-purple-500'
+                          : 'bg-white border-gray-200 text-gray-700 hover:border-purple-500'
+                    }`}
+                  >
+                    {opt}
+                  </button>
                 ))}
-              </select>
-              <button
-                onClick={handleAddEquipment}
-                className={`px-4 py-2 rounded-xl transition-all ${
-                  darkMode 
-                    ? 'bg-purple-600 hover:bg-purple-700 text-white' 
-                    : 'bg-purple-500 hover:bg-purple-600 text-white'
-                }`}
-              >
-                <Plus className="w-5 h-5" />
-              </button>
+              </div>
+              <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                複数選択可能です。クリックして選択/解除してください。
+              </p>
             </div>
           )}
           
