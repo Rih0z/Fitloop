@@ -49,12 +49,17 @@ function AppContent() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saveMessage, setSaveMessage] = useState<string | null>(null)
-  const [showOnboarding, setShowOnboarding] = useState(false)
-  const [showAuthModal, setShowAuthModal] = useState(false)
+  // Debug mode check - check immediately
+  const debugMode = (() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      return urlParams.get('debug') === 'true'
+    }
+    return false
+  })()
   
-  // Debug mode check
-  const urlParams = new URLSearchParams(window.location.search)
-  const debugMode = urlParams.get('debug') === 'true'
+  const [showOnboarding, setShowOnboarding] = useState(false)
+  const [showAuthModal, setShowAuthModal] = useState(!debugMode) // Initialize based on debug mode
 
   // Load initial data
   useEffect(() => {
@@ -81,9 +86,9 @@ function AppContent() {
       return
     }
     
-    if (!authLoading && !isAuthenticated) {
+    if (!authLoading && !isAuthenticated && !debugMode) {
       setShowAuthModal(true)
-    } else if (!profileLoading && !profile && isAuthenticated) {
+    } else if (!profileLoading && !profile && isAuthenticated && !debugMode) {
       setShowOnboarding(true)
     }
   }, [authLoading, isAuthenticated, profileLoading, profile, debugMode])
@@ -352,7 +357,8 @@ function AppContent() {
     }
   }
 
-  if (loading || profileLoading || authLoading) {
+  // Skip loading state in debug mode to show content immediately
+  if ((loading || profileLoading || authLoading) && !debugMode) {
     return (
       <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gradient-to-br from-gray-900 to-black' : 'bg-gradient-to-br from-gray-50 to-white'}`}>
         <div className="loading-modern rounded-full h-16 w-16 border-4 border-orange-500/20 border-t-orange-500 animate-spin"></div>
