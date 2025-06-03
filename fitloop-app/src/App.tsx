@@ -41,7 +41,7 @@ function AppContent() {
   const [context, setContext] = useState<Context | null>(null)
   const [currentPrompt, setCurrentPrompt] = useState<string>('')
   const [aiResponse, setAiResponse] = useState('')
-  const [aiResponseData, setAiResponseData] = useState<AIResponse | null>(null)
+  const [aiResponseData] = useState<AIResponse | null>(null)
   const [learningData, setLearningData] = useState<any>(null)
   const [progressData, setProgressData] = useState<any[]>([])
   const [recommendations, setRecommendations] = useState<any[]>([])
@@ -221,21 +221,6 @@ function AppContent() {
     }
   }
 
-  const handleGenerateAI = async () => {
-    if (!profile || !context) return
-
-    setLoading(true)
-    try {
-      const response = await promptService.generateAIResponse(profile, context, language)
-      setAiResponseData(response)
-      setAiResponse(response.content)
-    } catch (error) {
-      setError('AI応答の生成に失敗しました。')
-      console.error('Failed to generate AI response:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const handleSaveWorkout = async (workout: any) => {
     if (!profile) return
@@ -446,7 +431,6 @@ function AppContent() {
                   response={aiResponse}
                   onResponseChange={setAiResponse}
                   onPaste={handlePasteResponse}
-                  onGenerateAI={handleGenerateAI}
                   aiResponse={aiResponseData}
                   learningData={learningData}
                   loading={loading}

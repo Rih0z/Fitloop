@@ -20,8 +20,8 @@ export const translations = {
     usageSteps: [
       '「プロフィール」タブで情報を入力',
       '「プロンプト」タブでプロンプトをコピー',
-      'Claude AIに貼り付けて実行',
-      'Claudeの結果を「Claudeの結果」エリアに貼り付け',
+      'Claude・Gemini・ChatGPTに貼り付けて実行',
+      'AIの応答を「AI応答」エリアに貼り付け',
       '自動的に次のセッションのプロンプトが生成されます'
     ],
     meta: 'META',
@@ -31,7 +31,9 @@ export const translations = {
     aiResponse: 'AIレスポンス',
     aiResponseDescription: 'AIからの回答をここに貼り付けてください',
     paste: '貼り付け',
-    responsePlaceholder: 'AIからの回答をここに貼り付けてください',
+    responsePlaceholder: 'Claude、Gemini、ChatGPTからの回答をここに貼り付けてください',
+    aiServiceGuide: 'AI生成機能について',
+    aiServiceDescription: 'ユーザー数増加に伴い、将来的にワンクリックAI生成機能を実装予定です。現在は以下の外部AIサービスをご利用ください：',
     startFitnessJourney: 'フィットネスジャーニーを始めましょう',
     profileStep1Title: 'お名前を教えてください',
     profileStep1Description: 'トレーニングメニューをパーソナライズするために使用します',

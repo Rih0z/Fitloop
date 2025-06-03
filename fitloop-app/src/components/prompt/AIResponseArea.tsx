@@ -8,7 +8,6 @@ interface AIResponseAreaProps {
   response: string
   onResponseChange: (response: string) => void
   onPaste: () => void
-  onGenerateAI?: () => Promise<void>
   aiResponse?: AIResponse | null
   learningData?: any
   loading?: boolean
@@ -18,7 +17,6 @@ export const AIResponseArea: React.FC<AIResponseAreaProps> = ({
   response, 
   onResponseChange, 
   onPaste, 
-  onGenerateAI,
   aiResponse,
   learningData,
   loading = false 
@@ -77,16 +75,6 @@ ${(data.recommendations || []).map((r: string) => `- ${r}`).join('\n')}`
           </p>
         </div>
         <div className="flex gap-2">
-          {onGenerateAI && (
-            <button
-              onClick={onGenerateAI}
-              disabled={loading}
-              className={`btn-uber micro-bounce ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              <Brain className="inline w-4 h-4 mr-2" />
-              AI生成
-            </button>
-          )}
           <button
             onClick={onPaste}
             disabled={loading}
@@ -135,6 +123,33 @@ ${(data.recommendations || []).map((r: string) => `- ${r}`).join('\n')}`
         </button>
       </div>
 
+      {/* AI使用ガイド */}
+      {activeTab === 'ai' && (
+        <div className={`mb-4 p-4 rounded-lg border-2 border-dashed ${darkMode ? 'bg-blue-900/20 border-blue-600/30' : 'bg-blue-50 border-blue-300'}`}>
+          <div className="flex items-start gap-3">
+            <Brain className={`w-5 h-5 mt-0.5 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
+            <div>
+              <h3 className={`font-semibold mb-2 ${darkMode ? 'text-blue-400' : 'text-blue-800'}`}>
+                💡 AI応答の取得方法
+              </h3>
+              <div className={`text-sm space-y-2 ${darkMode ? 'text-blue-200' : 'text-blue-700'}`}>
+                <p><strong>1.</strong> 左のプロンプトをコピーして以下のAIサービスに貼り付けてください：</p>
+                <div className="ml-4 space-y-1">
+                  <div>🤖 <a href="https://claude.ai" target="_blank" rel="noopener" className="underline hover:no-underline">Claude (Anthropic)</a></div>
+                  <div>✨ <a href="https://gemini.google.com" target="_blank" rel="noopener" className="underline hover:no-underline">Gemini (Google)</a></div>
+                  <div>💬 <a href="https://chat.openai.com" target="_blank" rel="noopener" className="underline hover:no-underline">ChatGPT (OpenAI)</a></div>
+                </div>
+                <p><strong>2.</strong> AIの応答をコピーして、このエリアに貼り付けてください</p>
+                <p><strong>3.</strong> 貼り付けボタンを押すと、自動でトレーニング記録として保存されます</p>
+              </div>
+              <div className={`mt-3 p-2 rounded text-xs ${darkMode ? 'bg-amber-900/30 text-amber-200' : 'bg-amber-100 text-amber-700'}`}>
+                <strong>📢 今後の予定：</strong> ユーザー数が増加次第、AI生成機能を直接実装予定です！
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* AI応答のメタデータ */}
       {activeTab === 'ai' && aiResponse && (
         <div className={`mb-4 p-3 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-gray-50'}`}>
@@ -169,7 +184,7 @@ ${(data.recommendations || []).map((r: string) => `- ${r}`).join('\n')}`
             activeTab === 'manual' 
               ? t('responsePlaceholder')
               : activeTab === 'ai'
-              ? 'AIからの応答がここに表示されます...'
+              ? 'Claude、Gemini、ChatGPTからの応答をここに貼り付けてください...'
               : '学習データに基づく分析がここに表示されます...'
           }
           disabled={loading || activeTab !== 'manual'}

@@ -29,6 +29,9 @@ export const PromptDisplay: React.FC<PromptDisplayProps> = ({
           <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
             {t('promptDescription')}
           </p>
+          <div className={`mt-2 text-xs ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+            💡 Claude・Gemini・ChatGPTに貼り付けて使用してください
+          </div>
         </div>
         <button
           onClick={onCopy}
