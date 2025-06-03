@@ -105,8 +105,30 @@ function AppContent() {
     if (profile && context) {
       const prompt = promptService.generateFullPrompt(profile, context, language)
       setCurrentPrompt(prompt)
+    } else if (!profile && context && debugMode) {
+      // In debug mode, create a demo prompt without profile
+      const demoProfile = {
+        id: 999,
+        name: 'デモユーザー',
+        goals: '筋肉を大きくしたい',
+        environment: 'ジム（フル装備）',
+        preferences: {
+          intensity: 'medium' as const,
+          frequency: 3,
+          timeAvailable: 45,
+          workoutDuration: 60,
+          workoutFrequency: 3,
+          preferredTime: 'morning' as const,
+          equipment: [],
+          focusAreas: []
+        },
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+      const prompt = promptService.generateFullPrompt(demoProfile, context, language)
+      setCurrentPrompt(prompt)
     }
-  }, [profile, context, language])
+  }, [profile, context, language, debugMode])
 
   const loadData = async () => {
     setLoading(true)
@@ -115,7 +137,8 @@ function AppContent() {
       
       if (savedContext) {
         setContext(savedContext)
-      } else if (profile) {
+      } else {
+        // Initialize context even without profile in debug mode
         await storage.updateContext({ cycleNumber: 1, sessionNumber: 1 })
         const newContext = await storage.getContext()
         setContext(newContext)
@@ -357,8 +380,7 @@ function AppContent() {
     }
   }
 
-  // Skip loading state in debug mode to show content immediately
-  if ((loading || profileLoading || authLoading) && !debugMode) {
+  if (loading || profileLoading || authLoading) {
     return (
       <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gradient-to-br from-gray-900 to-black' : 'bg-gradient-to-br from-gray-50 to-white'}`}>
         <div className="loading-modern rounded-full h-16 w-16 border-4 border-orange-500/20 border-t-orange-500 animate-spin"></div>
