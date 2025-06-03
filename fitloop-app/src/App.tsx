@@ -31,7 +31,7 @@ const learningService = LearningService.getInstance()
 
 function AppContent() {
   const { activeTab, changeTab } = useTabs()
-  const { profile, loading: profileLoading, error: profileError } = useProfile()
+  const { profile, loading: profileLoading, error: profileError, reloadProfile } = useProfile()
   const { t, language } = useTranslation()
   const { darkMode } = useTheme()
   const clipboard = useClipboard()
@@ -102,10 +102,14 @@ function AppContent() {
 
   // Generate prompt when profile or context changes
   useEffect(() => {
+    console.log('Prompt generation check:', { profile: !!profile, context: !!context, debugMode })
+    
     if (profile && context) {
+      console.log('Generating prompt with profile:', profile.name)
       const prompt = promptService.generateFullPrompt(profile, context, language)
       setCurrentPrompt(prompt)
     } else if (!profile && context && debugMode) {
+      console.log('Generating demo prompt for debug mode')
       // In debug mode, create a demo prompt without profile
       const demoProfile = {
         id: 999,
@@ -127,6 +131,8 @@ function AppContent() {
       }
       const prompt = promptService.generateFullPrompt(demoProfile, context, language)
       setCurrentPrompt(prompt)
+    } else {
+      console.log('No prompt generated - missing requirements')
     }
   }, [profile, context, language, debugMode])
 
@@ -470,7 +476,10 @@ function AppContent() {
             <div className="max-w-4xl mx-auto page-transition">
               <ProfileManager 
                 profile={profile} 
-                onProfileUpdate={loadData}
+                onProfileUpdate={async () => {
+                  await loadData()
+                  await reloadProfile()
+                }}
               />
             </div>
           )}

@@ -31,7 +31,21 @@ export class FitLoopDatabase extends Dexie {
 
   constructor() {
     super('FitLoopDB')
+    
+    // Keep old versions for migration
     this.version(3).stores({
+      profile: '++id',
+      context: '++id',
+      prompts: '++id, type, createdAt',
+      sessions: '++id, date',
+      promptCollections: '++id, category, createdAt',
+      savedPrompts: '++id, title, category, isMetaPrompt, createdAt, lastUsed',
+      aiUsageStats: '++id, provider, lastUsed',
+      workoutHistory: '++id, [userId+exercise], userId, exercise, timestamp, createdAt'
+    })
+    
+    // Current version - increment to handle existing databases
+    this.version(31).stores({
       profile: '++id',
       context: '++id',
       prompts: '++id, type, createdAt',
