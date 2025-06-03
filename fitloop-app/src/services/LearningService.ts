@@ -36,12 +36,14 @@ export class LearningService implements ILearningService {
     exercise: string, 
     userId: string
   ): Promise<ExerciseProgress> {
+    let history: WorkoutMetrics[] = [];
+    
     try {
       if (!db.workoutHistory) {
         return this.getDefaultExerciseProgress(exercise);
       }
       
-      const history = await db.workoutHistory
+      history = await db.workoutHistory
         .where('[userId+exercise]')
         .equals([userId, exercise])
         .reverse()
@@ -65,7 +67,7 @@ export class LearningService implements ILearningService {
     }
     
     // パーソナルレコードを計算
-    const pr = history.reduce((best, workout) => {
+    const pr = history.reduce((best: any, workout: WorkoutMetrics) => {
       const currentVolume = workout.weight * workout.reps;
       const bestVolume = best.weight * best.reps;
       
@@ -134,6 +136,8 @@ export class LearningService implements ILearningService {
     userId: string, 
     timeRange?: { start: Date; end: Date }
   ): Promise<ProgressInsights> {
+    let workouts: WorkoutMetrics[] = [];
+    
     try {
       // データベースが初期化されていない場合のチェック
       if (!db.workoutHistory) {
@@ -149,7 +153,7 @@ export class LearningService implements ILearningService {
         );
       }
       
-      const workouts = await query.toArray();
+      workouts = await query.toArray();
     } catch (error) {
       console.error('Failed to analyze progress:', error);
       return this.getDefaultProgressInsights();
