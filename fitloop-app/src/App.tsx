@@ -11,6 +11,7 @@ import { PromptLibrary } from './components/library/PromptLibrary'
 import { Settings } from './components/settings/Settings'
 import { AuthModal } from './components/auth/AuthModal'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { TabDebugInfo } from './components/debug/TabDebugInfo'
 import { useTabs } from './hooks/useTabs'
 import { useProfile } from './hooks/useProfile'
 import { useTranslation } from './hooks/useTranslation'
@@ -50,6 +51,10 @@ function AppContent() {
   const [saveMessage, setSaveMessage] = useState<string | null>(null)
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
+  
+  // Debug mode check
+  const urlParams = new URLSearchParams(window.location.search)
+  const debugMode = urlParams.get('debug') === 'true'
 
   // Load initial data
   useEffect(() => {
@@ -58,12 +63,30 @@ function AppContent() {
 
   // Check authentication and onboarding
   useEffect(() => {
+    // Debug: Log authentication state
+    console.log('Auth State:', {
+      authLoading,
+      isAuthenticated,
+      profileLoading,
+      profile,
+      showAuthModal,
+      showOnboarding,
+      debugMode
+    })
+    
+    if (debugMode) {
+      console.log('🐛 Debug mode enabled - bypassing authentication')
+      setShowAuthModal(false)
+      setShowOnboarding(false)
+      return
+    }
+    
     if (!authLoading && !isAuthenticated) {
       setShowAuthModal(true)
     } else if (!profileLoading && !profile && isAuthenticated) {
       setShowOnboarding(true)
     }
-  }, [authLoading, isAuthenticated, profileLoading, profile])
+  }, [authLoading, isAuthenticated, profileLoading, profile, debugMode])
 
   // Load learning data when profile changes
   useEffect(() => {
@@ -337,7 +360,7 @@ function AppContent() {
     )
   }
 
-  if (showAuthModal) {
+  if (showAuthModal && !debugMode) {
     return (
       <>
         <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gradient-to-br from-gray-900 to-black' : 'bg-gradient-to-br from-gray-50 to-white'}`}>
@@ -360,7 +383,7 @@ function AppContent() {
     )
   }
 
-  if (showOnboarding) {
+  if (showOnboarding && !debugMode) {
     return (
       <ProfileOnboarding
         onComplete={handleOnboardingComplete}
@@ -371,6 +394,7 @@ function AppContent() {
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-black' : 'bg-gradient-to-br from-gray-50 via-white to-gray-100'} flex flex-col`}>
+      <TabDebugInfo />
       <Header />
 
       <main className="flex-1 flex flex-col pb-20">

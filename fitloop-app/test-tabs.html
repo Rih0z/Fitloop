@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitLoop Tab Debug</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        
+        .auth-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            max-width: 400px;
+            width: 90%;
+        }
+        
+        .tab-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #ddd;
+            padding: 10px 0;
+            z-index: 50;
+            display: flex;
+            justify-content: space-around;
+        }
+        
+        .tab-button {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            transition: all 0.3s;
+        }
+        
+        .tab-button:hover {
+            color: #333;
+            background: #f0f0f0;
+        }
+        
+        .tab-button.active {
+            color: #007bff;
+            font-weight: bold;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .debug-info {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            max-width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Debug Info -->
+    <div class="debug-info">
+        <h4>Debug Info:</h4>
+        <div id="debugInfo">
+            <p>Auth Modal: <span id="authModalStatus">Visible</span></p>
+            <p>Tab Bar: <span id="tabBarStatus">Hidden</span></p>
+            <p>Authenticated: <span id="authStatus">No</span></p>
+            <p>Profile: <span id="profileStatus">Not loaded</span></p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <h1>FitLoop - AI筋トレサポート</h1>
+        <div id="mainContent">
+            <p>メインコンテンツエリア</p>
+        </div>
+    </div>
+
+    <!-- Auth Modal -->
+    <div id="authModal" class="auth-modal">
+        <div class="modal-content">
+            <h2>ログイン</h2>
+            <p>認証モーダルのシミュレーション</p>
+            <button onclick="simulateLogin()">ログインをシミュレート</button>
+        </div>
+    </div>
+
+    <!-- Tab Bar -->
+    <nav id="tabBar" class="tab-bar hidden">
+        <button class="tab-button active" onclick="setActiveTab('prompt')">
+            🏠 プロンプト
+        </button>
+        <button class="tab-button" onclick="setActiveTab('profile')">
+            👤 プロフィール
+        </button>
+        <button class="tab-button" onclick="setActiveTab('library')">
+            📚 ライブラリ
+        </button>
+        <button class="tab-button" onclick="setActiveTab('settings')">
+            ⚙️ 設定
+        </button>
+    </nav>
+
+    <script>
+        let isAuthenticated = false;
+        let hasProfile = false;
+
+        function updateDebugInfo() {
+            const authModal = document.getElementById('authModal');
+            const tabBar = document.getElementById('tabBar');
+            
+            document.getElementById('authModalStatus').textContent = 
+                authModal.classList.contains('hidden') ? 'Hidden' : 'Visible';
+            document.getElementById('tabBarStatus').textContent = 
+                tabBar.classList.contains('hidden') ? 'Hidden' : 'Visible';
+            document.getElementById('authStatus').textContent = 
+                isAuthenticated ? 'Yes' : 'No';
+            document.getElementById('profileStatus').textContent = 
+                hasProfile ? 'Loaded' : 'Not loaded';
+        }
+
+        function simulateLogin() {
+            isAuthenticated = true;
+            hasProfile = true;
+            
+            // Hide auth modal
+            document.getElementById('authModal').classList.add('hidden');
+            
+            // Show tab bar
+            document.getElementById('tabBar').classList.remove('hidden');
+            
+            // Update main content
+            document.getElementById('mainContent').innerHTML = `
+                <h2>ようこそ、FitLoopへ！</h2>
+                <p>タブバーが表示されるはずです。</p>
+            `;
+            
+            updateDebugInfo();
+        }
+
+        function setActiveTab(tabName) {
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+            
+            // Update content based on tab
+            document.getElementById('mainContent').innerHTML = `
+                <h2>${tabName}タブ</h2>
+                <p>このタブは正常に動作しています。</p>
+            `;
+        }
+
+        // Initial state
+        updateDebugInfo();
+
+        // Simulate authentication check after 2 seconds
+        setTimeout(() => {
+            console.log('Checking authentication...');
+            if (localStorage.getItem('auth_token')) {
+                simulateLogin();
+            }
+        }, 2000);
+    </script>
+</body>
+</html>

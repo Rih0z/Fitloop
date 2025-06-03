@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitLoop Deployment Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        .test-section h2 {
+            margin-top: 0;
+            color: #555;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 14px;
+        }
+        .tab-simulator {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #ddd;
+            padding: 10px;
+            display: flex;
+            justify-content: space-around;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        }
+        .tab-button {
+            padding: 8px 16px;
+            background: none;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .tab-button:hover {
+            background: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🏋️ FitLoop Deployment Test</h1>
+        
+        <div class="test-section">
+            <h2>📍 環境情報</h2>
+            <div id="envInfo"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>🔐 認証テスト</h2>
+            <div id="authTest"></div>
+            <button onclick="testAuth()">認証をテスト</button>
+            <button onclick="bypassAuth()">認証をバイパス</button>
+        </div>
+
+        <div class="test-section">
+            <h2>💾 LocalStorage チェック</h2>
+            <div id="storageTest"></div>
+            <button onclick="checkStorage()">ストレージを確認</button>
+            <button onclick="clearStorage()">ストレージをクリア</button>
+        </div>
+
+        <div class="test-section">
+            <h2>🌐 API接続テスト</h2>
+            <div id="apiTest"></div>
+            <button onclick="testAPI()">APIをテスト</button>
+        </div>
+
+        <div class="test-section">
+            <h2>📱 レスポンシブテスト</h2>
+            <div id="responsiveTest"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>🐛 デバッグログ</h2>
+            <pre id="debugLog"></pre>
+        </div>
+    </div>
+
+    <!-- Tab Simulator -->
+    <div class="tab-simulator">
+        <button class="tab-button">🏠 ホーム</button>
+        <button class="tab-button">👤 プロフィール</button>
+        <button class="tab-button">📚 ライブラリ</button>
+        <button class="tab-button">⚙️ 設定</button>
+    </div>
+
+    <script>
+        const log = (message, type = 'info') => {
+            const debugLog = document.getElementById('debugLog');
+            const timestamp = new Date().toLocaleTimeString();
+            debugLog.textContent += `[${timestamp}] ${type.toUpperCase()}: ${message}\n`;
+        };
+
+        // 環境情報の表示
+        const showEnvInfo = () => {
+            const envInfo = document.getElementById('envInfo');
+            const info = {
+                'URL': window.location.href,
+                'User Agent': navigator.userAgent,
+                'Screen': `${screen.width}x${screen.height}`,
+                'Viewport': `${window.innerWidth}x${window.innerHeight}`,
+                'Device Pixel Ratio': window.devicePixelRatio,
+                'Online': navigator.onLine
+            };
+            
+            envInfo.innerHTML = Object.entries(info).map(([key, value]) => 
+                `<div class="status">${key}: <strong>${value}</strong></div>`
+            ).join('');
+            log('環境情報を取得しました');
+        };
+
+        // 認証テスト
+        const testAuth = async () => {
+            const authTest = document.getElementById('authTest');
+            try {
+                const token = localStorage.getItem('auth_token');
+                if (token) {
+                    authTest.innerHTML = '<div class="status success">認証トークンが見つかりました</div>';
+                    log('認証トークンあり');
+                } else {
+                    authTest.innerHTML = '<div class="status warning">認証トークンが見つかりません</div>';
+                    log('認証トークンなし', 'warning');
+                }
+            } catch (e) {
+                authTest.innerHTML = `<div class="status error">エラー: ${e.message}</div>`;
+                log(`認証テストエラー: ${e.message}`, 'error');
+            }
+        };
+
+        // 認証バイパス
+        const bypassAuth = () => {
+            localStorage.setItem('auth_token', 'test_token_' + Date.now());
+            localStorage.setItem('fitloop_profile', JSON.stringify({
+                name: 'テストユーザー',
+                experience: 'intermediate',
+                goals: 'テスト'
+            }));
+            const authTest = document.getElementById('authTest');
+            authTest.innerHTML = '<div class="status success">認証をバイパスしました</div>';
+            log('認証バイパス完了');
+        };
+
+        // ストレージチェック
+        const checkStorage = () => {
+            const storageTest = document.getElementById('storageTest');
+            const items = ['auth_token', 'fitloop_profile', 'fitloop_context', 'fitloop_theme', 'fitloop_language'];
+            
+            let html = '';
+            items.forEach(item => {
+                const value = localStorage.getItem(item);
+                if (value) {
+                    html += `<div class="status success">${item}: ${value.substring(0, 50)}...</div>`;
+                    log(`${item} found`);
+                } else {
+                    html += `<div class="status warning">${item}: なし</div>`;
+                }
+            });
+            
+            storageTest.innerHTML = html;
+        };
+
+        // ストレージクリア
+        const clearStorage = () => {
+            if (confirm('本当にLocalStorageをクリアしますか？')) {
+                localStorage.clear();
+                const storageTest = document.getElementById('storageTest');
+                storageTest.innerHTML = '<div class="status success">LocalStorageをクリアしました</div>';
+                log('LocalStorageクリア完了');
+            }
+        };
+
+        // API接続テスト
+        const testAPI = async () => {
+            const apiTest = document.getElementById('apiTest');
+            const apiUrl = 'https://fitloop-backend.riho-dare.workers.dev/api/health';
+            
+            try {
+                log(`API接続テスト開始: ${apiUrl}`);
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    apiTest.innerHTML = `<div class="status success">API接続成功: ${JSON.stringify(data)}</div>`;
+                    log('API接続成功');
+                } else {
+                    apiTest.innerHTML = `<div class="status error">API接続失敗: ${response.status}</div>`;
+                    log(`API接続失敗: ${response.status}`, 'error');
+                }
+            } catch (e) {
+                apiTest.innerHTML = `<div class="status error">ネットワークエラー: ${e.message}</div>`;
+                log(`ネットワークエラー: ${e.message}`, 'error');
+            }
+        };
+
+        // レスポンシブテスト
+        const checkResponsive = () => {
+            const responsiveTest = document.getElementById('responsiveTest');
+            const width = window.innerWidth;
+            let deviceType = 'デスクトップ';
+            
+            if (width < 640) deviceType = 'モバイル';
+            else if (width < 1024) deviceType = 'タブレット';
+            
+            responsiveTest.innerHTML = `
+                <div class="status">デバイスタイプ: <strong>${deviceType}</strong></div>
+                <div class="status">画面幅: <strong>${width}px</strong></div>
+                <div class="status">タッチデバイス: <strong>${'ontouchstart' in window ? 'はい' : 'いいえ'}</strong></div>
+            `;
+            log(`レスポンシブチェック: ${deviceType} (${width}px)`);
+        };
+
+        // 初期化
+        window.onload = () => {
+            log('テストページ読み込み完了');
+            showEnvInfo();
+            testAuth();
+            checkStorage();
+            checkResponsive();
+        };
+
+        // リサイズ監視
+        window.addEventListener('resize', checkResponsive);
+    </script>
+</body>
+</html>
