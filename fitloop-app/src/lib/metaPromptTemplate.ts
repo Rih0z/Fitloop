@@ -415,6 +415,10 @@ export interface PromptMetadata {
 
 // Function to extract metadata from prompt
 export function extractMetadata(promptText: string): PromptMetadata | null {
+  if (!promptText || typeof promptText !== 'string') {
+    return null;
+  }
+  
   const startMarker = '<!-- METADATA_START -->';
   const endMarker = '<!-- METADATA_END -->';
   
@@ -430,10 +434,19 @@ export function extractMetadata(promptText: string): PromptMetadata | null {
     endIndex
   ).trim();
   
+  if (!jsonText) {
+    return null;
+  }
+  
   try {
-    return JSON.parse(jsonText);
+    const parsed = JSON.parse(jsonText);
+    // Validate that it's an object and not null
+    if (typeof parsed === 'object' && parsed !== null) {
+      return parsed;
+    }
+    return null;
   } catch (error) {
-    console.error('JSON parse error:', error);
+    // JSON parse error is expected for malformed JSON - don't log as error
     return null;
   }
 }

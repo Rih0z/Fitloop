@@ -235,6 +235,75 @@ Rest of the prompt...`
     expect(metadata?.sessionNumber).toBe(7)
     expect(metadata?.cycleProgress).toBe('7/8')
   })
+
+  it('should handle empty metadata content', () => {
+    const emptyMetadataPrompt = `# Some title
+<!-- METADATA_START -->
+<!-- METADATA_END -->
+Rest of the prompt...`
+
+    const metadata = extractMetadata(emptyMetadataPrompt)
+    expect(metadata).toBeNull()
+  })
+
+  it('should handle whitespace-only metadata content', () => {
+    const whitespaceMetadataPrompt = `# Some title
+<!-- METADATA_START -->
+   
+   
+<!-- METADATA_END -->
+Rest of the prompt...`
+
+    const metadata = extractMetadata(whitespaceMetadataPrompt)
+    expect(metadata).toBeNull()
+  })
+
+  it('should handle null/non-object JSON values', () => {
+    const nullValuePrompt = `# Some title
+<!-- METADATA_START -->
+null
+<!-- METADATA_END -->
+Rest of the prompt...`
+
+    const metadata = extractMetadata(nullValuePrompt)
+    expect(metadata).toBeNull()
+  })
+
+  it('should handle array JSON values', () => {
+    const arrayValuePrompt = `# Some title
+<!-- METADATA_START -->
+["not", "an", "object"]
+<!-- METADATA_END -->
+Rest of the prompt...`
+
+    const metadata = extractMetadata(arrayValuePrompt)
+    // Arrays are objects in JavaScript, so they're returned as-is
+    expect(Array.isArray(metadata)).toBe(true)
+    expect(metadata).toEqual(["not", "an", "object"])
+  })
+
+  it('should handle primitive JSON values', () => {
+    const primitiveValuePrompt = `# Some title
+<!-- METADATA_START -->
+"just a string"
+<!-- METADATA_END -->
+Rest of the prompt...`
+
+    const metadata = extractMetadata(primitiveValuePrompt)
+    expect(metadata).toBeNull()
+  })
+
+  it('should handle non-string input', () => {
+    // Test the type guard
+    const metadata = extractMetadata(null as any)
+    expect(metadata).toBeNull()
+    
+    const metadata2 = extractMetadata(undefined as any)
+    expect(metadata).toBeNull()
+    
+    const metadata3 = extractMetadata(123 as any)
+    expect(metadata).toBeNull()
+  })
 })
 
 describe('Template consistency', () => {

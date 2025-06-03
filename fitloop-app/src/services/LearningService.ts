@@ -36,11 +36,20 @@ export class LearningService implements ILearningService {
     exercise: string, 
     userId: string
   ): Promise<ExerciseProgress> {
-    const history = await db.workoutHistory
-      .where('[userId+exercise]')
-      .equals([userId, exercise])
-      .reverse()
-      .sortBy('timestamp');
+    try {
+      if (!db.workoutHistory) {
+        return this.getDefaultExerciseProgress(exercise);
+      }
+      
+      const history = await db.workoutHistory
+        .where('[userId+exercise]')
+        .equals([userId, exercise])
+        .reverse()
+        .sortBy('timestamp');
+    } catch (error) {
+      console.error('Failed to get exercise progress:', error);
+      return this.getDefaultExerciseProgress(exercise);
+    }
     
     if (history.length === 0) {
       return {
@@ -125,34 +134,29 @@ export class LearningService implements ILearningService {
     userId: string, 
     timeRange?: { start: Date; end: Date }
   ): Promise<ProgressInsights> {
-    let query = db.workoutHistory.where('userId').equals(userId);
-    
-    if (timeRange) {
-      query = query.and(workout => 
-        workout.timestamp >= timeRange.start && 
-        workout.timestamp <= timeRange.end
-      );
+    try {
+      // データベースが初期化されていない場合のチェック
+      if (!db.workoutHistory) {
+        return this.getDefaultProgressInsights();
+      }
+
+      let query = db.workoutHistory.where('userId').equals(userId);
+      
+      if (timeRange) {
+        query = query.and(workout => 
+          workout.timestamp >= timeRange.start && 
+          workout.timestamp <= timeRange.end
+        );
+      }
+      
+      const workouts = await query.toArray();
+    } catch (error) {
+      console.error('Failed to analyze progress:', error);
+      return this.getDefaultProgressInsights();
     }
     
-    const workouts = await query.toArray();
-    
     if (workouts.length === 0) {
-      return {
-        overallProgress: 'needs_attention',
-        strengths: [],
-        areasForImprovement: ['トレーニング履歴がありません'],
-        recommendations: ['定期的なトレーニングを始めましょう'],
-        muscleBalance: {
-          upperBody: 0,
-          lowerBody: 0,
-          core: 0
-        },
-        consistency: {
-          workoutsPerWeek: 0,
-          streak: 0,
-          lastWorkout: new Date()
-        }
-      };
+      return this.getDefaultProgressInsights();
     }
     
     // 分析ロジック
@@ -162,13 +166,22 @@ export class LearningService implements ILearningService {
   }
   
   async getAllExercises(userId: string): Promise<string[]> {
-    const workouts = await db.workoutHistory
-      .where('userId')
-      .equals(userId)
-      .toArray();
-    
-    const exercises = new Set(workouts.map(w => w.exercise));
-    return Array.from(exercises).sort();
+    try {
+      if (!db.workoutHistory) {
+        return [];
+      }
+      
+      const workouts = await db.workoutHistory
+        .where('userId')
+        .equals(userId)
+        .toArray();
+      
+      const exercises = new Set(workouts.map(w => w.exercise));
+      return Array.from(exercises).sort();
+    } catch (error) {
+      console.error('Failed to get exercises:', error);
+      return [];
+    }
   }
   
   private analyzeTrend(
@@ -360,5 +373,37 @@ export class LearningService implements ILearningService {
     }
     
     return streak;
+  }
+
+  private getDefaultProgressInsights(): ProgressInsights {
+    return {
+      overallProgress: 'needs_attention',
+      strengths: [],
+      areasForImprovement: ['トレーニング履歴がありません'],
+      recommendations: ['定期的なトレーニングを始めましょう'],
+      muscleBalance: {
+        upperBody: 0,
+        lowerBody: 0,
+        core: 0
+      },
+      consistency: {
+        workoutsPerWeek: 0,
+        streak: 0,
+        lastWorkout: new Date()
+      }
+    };
+  }
+
+  private getDefaultExerciseProgress(exercise: string): ExerciseProgress {
+    return {
+      exercise,
+      history: [],
+      personalRecord: {
+        weight: 0,
+        reps: 0,
+        date: new Date()
+      },
+      trend: 'maintaining'
+    };
   }
 }

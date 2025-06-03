@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { BookOpen, Search, Star, Copy, Trash2, ChevronRight, Sparkles, User, Target } from 'lucide-react'
 import { useTheme } from '../../hooks/useTheme'
+import { apiService } from '../../services/ApiService'
 import { StorageManager } from '../../lib/db'
 import type { SavedPrompt } from '../../models/promptCollection'
 import type { GeneratedPrompt } from '../../models/prompt'
@@ -72,24 +73,70 @@ export const PromptLibrary: React.FC = () => {
   const loadPrompts = async () => {
     setLoading(true)
     try {
-      const [savedPrompts, generatedPrompts] = await Promise.all([
+      // Load from both local storage and backend API
+      const [savedPrompts, generatedPrompts, backendPrompts] = await Promise.all([
         storage.getSavedPrompts(),
-        storage.getGeneratedPrompts()
+        storage.getGeneratedPrompts(),
+        loadBackendPrompts()
       ])
       
       const unifiedPrompts: UnifiedPrompt[] = [
         ...savedPrompts.map((p: SavedPrompt) => ({ ...p, promptType: 'saved' as const })),
-        ...generatedPrompts.map((p: GeneratedPrompt) => ({ ...p, promptType: 'generated' as const }))
+        ...generatedPrompts.map((p: GeneratedPrompt) => ({ ...p, promptType: 'generated' as const })),
+        ...backendPrompts
       ]
       
-      // Sort by creation date, newest first
-      unifiedPrompts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      // Remove duplicates based on content or backend ID
+      const uniquePrompts = unifiedPrompts.filter((prompt, index, self) => {
+        return index === self.findIndex(p => {
+          // Check for duplicate content or backend ID
+          const hasBackendId = (prompt as any).metadata?.backendId && (p as any).metadata?.backendId
+          if (hasBackendId) {
+            return (prompt as any).metadata.backendId === (p as any).metadata.backendId
+          }
+          return p.content === prompt.content
+        })
+      })
       
-      setAllPrompts(unifiedPrompts)
+      // Sort by creation date, newest first
+      uniquePrompts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      
+      setAllPrompts(uniquePrompts)
     } catch (error) {
       console.error('Failed to load prompts:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const loadBackendPrompts = async (): Promise<UnifiedPrompt[]> => {
+    try {
+      if (!apiService.isAuthenticated()) {
+        return []
+      }
+
+      const response = await apiService.getPrompts()
+      if (response.status === 200 && response.data) {
+        return response.data.map(prompt => ({
+          content: prompt.content,
+          title: prompt.title,
+          type: prompt.type,
+          source: prompt.source || 'manual',
+          used: prompt.used,
+          createdAt: new Date(prompt.created_at),
+          metadata: {
+            backendId: prompt.id,
+            profileId: prompt.metadata?.profileId,
+            profileName: prompt.metadata?.profileName,
+            generatedFrom: prompt.metadata?.generatedFrom
+          },
+          promptType: 'generated' as const
+        }))
+      }
+      return []
+    } catch (error) {
+      console.error('Failed to load backend prompts:', error)
+      return []
     }
   }
 
@@ -129,6 +176,17 @@ export const PromptLibrary: React.FC = () => {
     try {
       await navigator.clipboard.writeText(getPromptContent(prompt))
       
+      // Update backend if this prompt came from backend
+      const backendId = (prompt as any).metadata?.backendId
+      if (backendId && apiService.isAuthenticated()) {
+        try {
+          await apiService.markPromptAsUsed(backendId)
+        } catch (error) {
+          console.error('Failed to mark prompt as used in backend:', error)
+        }
+      }
+      
+      // Update local storage
       if (prompt.promptType === 'saved' && prompt.id) {
         await storage.updatePromptUsage(prompt.id)
       } else if (prompt.promptType === 'generated' && prompt.id) {

@@ -8,8 +8,19 @@ import type { GeneratedPrompt } from '../../../src/models/prompt'
 describe('Database', () => {
   beforeEach(async () => {
     // データベースを完全にリセット
+    await db.close()
     indexedDB.deleteDatabase('FitLoopDB')
     await db.open()
+    
+    // すべてのテーブルをクリア
+    await Promise.all([
+      db.profile.clear(),
+      db.context.clear(),
+      db.prompts.clear(),
+      db.sessions.clear(),
+      db.promptCollections.clear(),
+      db.savedPrompts.clear()
+    ]).catch(() => {}) // テーブルが存在しない場合のエラーを無視
   })
 
   afterEach(async () => {
@@ -147,8 +158,20 @@ describe('StorageManager', () => {
   let storage: StorageManager
 
   beforeEach(async () => {
+    await db.close()
     indexedDB.deleteDatabase('FitLoopDB')
     await db.open()
+    
+    // すべてのテーブルをクリア
+    await Promise.all([
+      db.profile.clear(),
+      db.context.clear(),
+      db.prompts.clear(),
+      db.sessions.clear(),
+      db.promptCollections.clear(),
+      db.savedPrompts.clear()
+    ]).catch(() => {}) // テーブルが存在しない場合のエラーを無視
+    
     storage = new StorageManager()
   })
 
@@ -414,6 +437,7 @@ describe('StorageManager', () => {
       }
 
       await storage.savePromptToCollection(customPrompt)
+      
       const saved = await storage.getSavedPrompts()
       
       const custom = saved.find(p => p.title === 'カスタムプロンプト')
@@ -465,6 +489,9 @@ describe('StorageManager', () => {
       const saved = await storage.getSavedPrompts()
       const id = saved.find(p => p.title === 'テスト')?.id
       
+      // タイムスタンプの差を確実にするため1ms待機
+      await new Promise(resolve => setTimeout(resolve, 1))
+      
       if (id) {
         await storage.updatePromptContent(id, '新しい内容')
       }
@@ -486,6 +513,69 @@ describe('StorageManager', () => {
       expect(lastPrompt).toBeDefined()
       expect(lastPrompt?.content).toBe(currentPrompt)
       expect(lastPrompt?.tags).toContain('前回')
+    })
+
+    it('should replace existing "前回のプロンプト" when saving new one', async () => {
+      // 最初の前回プロンプトを保存
+      await storage.saveCurrentPromptAsLast('最初のプロンプト')
+      
+      // 2回目の前回プロンプトを保存
+      await storage.saveCurrentPromptAsLast('2回目のプロンプト')
+      
+      const saved = await storage.getSavedPrompts()
+      const lastPrompts = saved.filter(p => p.title.startsWith('前回のプロンプト'))
+      
+      // 前回のプロンプトは1つだけあることを確認
+      expect(lastPrompts).toHaveLength(1)
+      expect(lastPrompts[0].content).toBe('2回目のプロンプト')
+    })
+
+    it('should clear all data', async () => {
+      // テストデータを作成
+      await storage.saveProfile({
+        name: 'テストユーザー',
+        goals: 'テスト目標',
+        environment: 'テスト環境',
+        preferences: { intensity: 'medium', frequency: 3, timeAvailable: 60 },
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
+      
+      await storage.updateContext({ cycleNumber: 1, sessionNumber: 1 })
+      
+      await storage.savePrompt({
+        type: 'training',
+        content: 'テストプロンプト',
+        metadata: {},
+        createdAt: new Date(),
+        used: false
+      })
+      
+      await storage.savePromptToCollection({
+        title: 'テストコレクション',
+        content: 'テスト内容',
+        category: 'custom',
+        tags: [],
+        isMetaPrompt: false,
+        usageCount: 0,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
+      
+      // データが存在することを確認
+      expect(await storage.getProfile()).toBeDefined()
+      expect(await storage.getContext()).toBeDefined()
+      expect((await db.prompts.count())).toBeGreaterThan(0)
+      expect((await storage.getSavedPrompts()).length).toBeGreaterThan(0)
+      
+      // データをクリア
+      await storage.clearAllData()
+      
+      // データが削除されたことを確認
+      expect(await storage.getProfile()).toBeUndefined()
+      expect(await storage.getContext()).toBeNull()
+      expect(await db.prompts.count()).toBe(0)
+      expect((await storage.getSavedPrompts()).length).toBe(0)
     })
   })
 
@@ -519,7 +609,7 @@ describe('StorageManager', () => {
 
   describe('Database versioning', () => {
     it('should handle database version', () => {
-      expect(db.verno).toBe(2)
+      expect(db.verno).toBe(3)
       expect(db.name).toBe('FitLoopDB')
     })
 

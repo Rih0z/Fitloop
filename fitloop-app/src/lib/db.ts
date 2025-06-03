@@ -4,6 +4,7 @@ import type { Context } from '../models/context'
 import type { GeneratedPrompt, TrainingSession } from '../models/prompt'
 import type { PromptCollection, SavedPrompt } from '../models/promptCollection'
 import type { WorkoutMetrics } from '../interfaces/ILearningService'
+import { defaultPrompts } from '../data/defaultPrompts'
 
 interface AIUsageStats {
   id?: number
@@ -36,7 +37,7 @@ export class FitLoopDatabase extends Dexie {
       prompts: '++id, type, createdAt',
       sessions: '++id, date',
       promptCollections: '++id, category, createdAt',
-      savedPrompts: '++id, category, isMetaPrompt, createdAt, lastUsed',
+      savedPrompts: '++id, title, category, isMetaPrompt, createdAt, lastUsed',
       aiUsageStats: '++id, provider, lastUsed',
       workoutHistory: '++id, [userId+exercise], userId, exercise, timestamp, createdAt'
     })
@@ -174,7 +175,7 @@ export class StorageManager {
   }
 
   async getSavedPrompts(category?: string): Promise<SavedPrompt[]> {
-    let query = db.savedPrompts.orderBy('lastUsed').reverse()
+    let query = db.savedPrompts.orderBy('createdAt').reverse()
     if (category) {
       query = query.filter(p => p.category === category)
     }
@@ -252,8 +253,8 @@ export class StorageManager {
 
   // 初期データの設定
   async initializeDefaultPrompts(): Promise<void> {
-    const existingCollections = await this.getPromptCollections()
-    if (existingCollections.length === 0) {
+    const existingPrompts = await this.getSavedPrompts()
+    if (existingPrompts.length === 0) {
       // デフォルトのコレクションとプロンプトを作成
       const { DEFAULT_PROMPT_COLLECTIONS, DEFAULT_META_PROMPTS } = await import('../models/promptCollection')
       
@@ -268,6 +269,15 @@ export class StorageManager {
       
       // デフォルトのメタプロンプトを保存
       for (const prompt of DEFAULT_META_PROMPTS) {
+        await this.savePromptToCollection({
+          ...prompt,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+      }
+      
+      // 新しいデフォルトプロンプトを保存
+      for (const prompt of defaultPrompts) {
         await this.savePromptToCollection({
           ...prompt,
           createdAt: new Date(),

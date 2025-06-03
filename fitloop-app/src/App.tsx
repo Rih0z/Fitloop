@@ -9,6 +9,8 @@ import { ProfileManager } from './components/profile/ProfileManager'
 import { ProfileOnboarding } from './components/profile/ProfileOnboarding'
 import { PromptLibrary } from './components/library/PromptLibrary'
 import { Settings } from './components/settings/Settings'
+import { AuthModal } from './components/auth/AuthModal'
+import { AuthProvider, useAuth } from './context/AuthContext'
 import { useTabs } from './hooks/useTabs'
 import { useProfile } from './hooks/useProfile'
 import { useTranslation } from './hooks/useTranslation'
@@ -26,12 +28,13 @@ const storage = new StorageManager()
 const promptService = new PromptService()
 const learningService = LearningService.getInstance()
 
-function App() {
+function AppContent() {
   const { activeTab, changeTab } = useTabs()
   const { profile, loading: profileLoading, error: profileError } = useProfile()
   const { t, language } = useTranslation()
   const { darkMode } = useTheme()
   const clipboard = useClipboard()
+  const { isAuthenticated, isLoading: authLoading } = useAuth()
 
   // App state
   const [context, setContext] = useState<Context | null>(null)
@@ -46,18 +49,21 @@ function App() {
   const [error, setError] = useState<string | null>(null)
   const [saveMessage, setSaveMessage] = useState<string | null>(null)
   const [showOnboarding, setShowOnboarding] = useState(false)
+  const [showAuthModal, setShowAuthModal] = useState(false)
 
   // Load initial data
   useEffect(() => {
     loadData()
   }, [])
 
-  // Check if user needs onboarding
+  // Check authentication and onboarding
   useEffect(() => {
-    if (!profileLoading && !profile) {
+    if (!authLoading && !isAuthenticated) {
+      setShowAuthModal(true)
+    } else if (!profileLoading && !profile && isAuthenticated) {
       setShowOnboarding(true)
     }
-  }, [profileLoading, profile])
+  }, [authLoading, isAuthenticated, profileLoading, profile])
 
   // Load learning data when profile changes
   useEffect(() => {
@@ -323,11 +329,34 @@ function App() {
     }
   }
 
-  if (loading || profileLoading) {
+  if (loading || profileLoading || authLoading) {
     return (
       <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gradient-to-br from-gray-900 to-black' : 'bg-gradient-to-br from-gray-50 to-white'}`}>
         <div className="loading-modern rounded-full h-16 w-16 border-4 border-orange-500/20 border-t-orange-500 animate-spin"></div>
       </div>
+    )
+  }
+
+  if (showAuthModal) {
+    return (
+      <>
+        <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gradient-to-br from-gray-900 to-black' : 'bg-gradient-to-br from-gray-50 to-white'}`}>
+          <div className="text-center space-y-8">
+            <div className="text-6xl mb-4">🏋️‍♀️</div>
+            <h1 className={`text-4xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+              FitLoop
+            </h1>
+            <p className={`text-xl ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+              AIパワードパーソナルトレーニング
+            </p>
+          </div>
+        </div>
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+          onSuccess={() => setShowAuthModal(false)}
+        />
+      </>
     )
   }
 
@@ -430,6 +459,14 @@ function App() {
         </div>
       )}
     </div>
+  )
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   )
 }
 

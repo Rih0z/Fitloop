@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { ChevronLeft, ChevronRight, Sparkles, Copy, Check } from 'lucide-react'
 import { useTheme } from '../../hooks/useTheme'
+import { apiService } from '../../services/ApiService'
 import type { UserProfile } from '../../models/user'
 import type { GeneratedPrompt } from '../../models/prompt'
 import { StorageManager } from '../../lib/db'
@@ -28,7 +29,8 @@ const steps: Step[] = [
   { id: 'environment', title: 'トレーニング環境', subtitle: 'どこで運動しますか？', emoji: '🏠' },
   { id: 'equipment', title: '利用可能な器具', subtitle: '使える器具を選択', emoji: '🏋️' },
   { id: 'focus', title: '重点部位', subtitle: '特に鍛えたい部位は？', emoji: '🎯' },
-  { id: 'schedule', title: 'スケジュール', subtitle: 'いつトレーニングしますか？', emoji: '📅' }
+  { id: 'schedule', title: 'スケジュール', subtitle: 'いつトレーニングしますか？', emoji: '📅' },
+  { id: 'additional', title: 'その他', subtitle: '何か伝えたいことがあれば', emoji: '💬' }
 ]
 
 export const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({ onComplete, initialProfile }) => {
@@ -58,7 +60,9 @@ export const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({ onComplete
   })
   
   const [selectedGoals, setSelectedGoals] = useState<string[]>([])
+  const [additionalInfo, setAdditionalInfo] = useState<string>('')
   const [generatedPrompt, setGeneratedPrompt] = useState<string>('')
+  const [completedProfile, setCompletedProfile] = useState<UserProfile | null>(null)
   const [copied, setCopied] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
 
@@ -123,6 +127,7 @@ export const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({ onComplete
       case 'equipment': return profile.preferences.equipment.length > 0
       case 'focus': return profile.preferences.focusAreas.length > 0
       case 'schedule': return true
+      case 'additional': return true // 自由記述は任意
       default: return true
     }
   }
@@ -180,33 +185,97 @@ export const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({ onComplete
       return option ? option.title : ''
     }).filter(Boolean).join(', ')
     
-    const updatedProfile = { ...profile, goals: goalTexts }
+    const updatedProfile = { 
+      ...profile, 
+      goals: additionalInfo ? `${goalTexts}\n\n【追加情報】\n${additionalInfo}` : goalTexts 
+    }
+    
+    setCompletedProfile(updatedProfile)
     
     try {
-      // Save profile
-      await storage.saveProfile(updatedProfile)
-      
-      // Generate and save prompt
-      const promptContent = generateProfileBasedPrompt(updatedProfile)
-      const generatedPromptData: GeneratedPrompt = {
-        type: 'training',
-        content: promptContent,
-        metadata: {
-          profileId: updatedProfile.id,
-          profileName: updatedProfile.name,
-          generatedFrom: 'profile'
-        },
-        createdAt: new Date(),
-        used: false,
-        source: 'profile',
-        title: `${updatedProfile.name}さん専用トレーニングプロンプト`
+      // Save profile to backend API
+      const profileData = {
+        name: updatedProfile.name,
+        age: updatedProfile.age,
+        weight: updatedProfile.weight,
+        height: updatedProfile.height,
+        experience: updatedProfile.experience,
+        goals: updatedProfile.goals,
+        environment: updatedProfile.environment,
+        preferences: {
+          workoutFrequency: updatedProfile.preferences.workoutFrequency,
+          workoutDuration: updatedProfile.preferences.workoutDuration,
+          preferredTime: (updatedProfile.preferences.preferredTime === 'flexible' ? 'anytime' : updatedProfile.preferences.preferredTime) as 'morning' | 'afternoon' | 'evening' | 'anytime',
+          equipment: updatedProfile.preferences.equipment,
+          focusAreas: updatedProfile.preferences.focusAreas
+        }
       }
       
-      await storage.savePrompt(generatedPromptData)
-      setGeneratedPrompt(promptContent)
+      const profileResponse = await apiService.saveProfile(profileData)
+      
+      if (profileResponse.status === 200 && profileResponse.data) {
+        // Generate prompt from profile via API
+        const promptResponse = await apiService.generatePromptFromProfile()
+        
+        if (promptResponse.status === 201 && promptResponse.data) {
+          setGeneratedPrompt(promptResponse.data.prompt.content)
+        } else {
+          // Fallback to local generation
+          const promptContent = generateProfileBasedPrompt(updatedProfile)
+          setGeneratedPrompt(promptContent)
+        }
+        
+        // Also save locally for offline access
+        await storage.saveProfile(updatedProfile)
+        
+        if (promptResponse.data) {
+          const generatedPromptData: GeneratedPrompt = {
+            type: 'training',
+            content: promptResponse.data.prompt.content,
+            metadata: {
+              profileId: profileResponse.data.profile.id,
+              profileName: profileResponse.data.profile.name,
+              generatedFrom: 'profile',
+              backendId: promptResponse.data.prompt.id
+            },
+            createdAt: new Date(),
+            used: false,
+            source: 'profile',
+            title: promptResponse.data.prompt.title
+          }
+          
+          await storage.savePrompt(generatedPromptData)
+        }
+      } else {
+        throw new Error('Failed to save profile to backend')
+      }
       
     } catch (error) {
       console.error('Failed to save profile:', error)
+      
+      // Fallback to local storage
+      try {
+        await storage.saveProfile(updatedProfile)
+        const promptContent = generateProfileBasedPrompt(updatedProfile)
+        const generatedPromptData: GeneratedPrompt = {
+          type: 'training',
+          content: promptContent,
+          metadata: {
+            profileId: updatedProfile.id,
+            profileName: updatedProfile.name,
+            generatedFrom: 'profile'
+          },
+          createdAt: new Date(),
+          used: false,
+          source: 'profile',
+          title: `${updatedProfile.name}さん専用トレーニングプロンプト`
+        }
+        
+        await storage.savePrompt(generatedPromptData)
+        setGeneratedPrompt(promptContent)
+      } catch (localError) {
+        console.error('Failed to save profile locally:', localError)
+      }
     } finally {
       setIsGenerating(false)
     }
@@ -347,6 +416,12 @@ export const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({ onComplete
       case 'goals':
         return (
           <div className="space-y-4">
+            <div className={`text-sm text-center mb-4 ${darkMode ? 'text-purple-300' : 'text-purple-600'}`}>
+              <span className="inline-flex items-center gap-2">
+                <span className="text-lg">✅</span>
+                複数選択可能です
+              </span>
+            </div>
             <div className="grid grid-cols-2 gap-3">
               {goalOptions.map(goal => (
                 <button
@@ -358,16 +433,21 @@ export const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({ onComplete
                         : [...prev, goal.id]
                     )
                   }}
-                  className={`p-4 rounded-2xl border-2 transition-all ${
+                  className={`relative p-4 rounded-2xl border-2 transition-all ${
                     selectedGoals.includes(goal.id)
                       ? darkMode 
-                        ? 'bg-purple-600 border-purple-600 text-white transform scale-105'
-                        : 'bg-purple-500 border-purple-500 text-white transform scale-105'
+                        ? 'bg-purple-600 border-purple-600 text-white transform scale-105 shadow-lg'
+                        : 'bg-purple-500 border-purple-500 text-white transform scale-105 shadow-lg'
                       : darkMode
-                        ? 'bg-gray-800 border-gray-700 text-gray-300 hover:border-purple-500'
-                        : 'bg-white border-gray-200 text-gray-700 hover:border-purple-500'
+                        ? 'bg-gray-800 border-gray-700 text-gray-300 hover:border-purple-500 hover:shadow-md'
+                        : 'bg-white border-gray-200 text-gray-700 hover:border-purple-500 hover:shadow-md'
                   }`}
                 >
+                  {selectedGoals.includes(goal.id) && (
+                    <div className="absolute top-2 right-2">
+                      <span className="text-xl">✓</span>
+                    </div>
+                  )}
                   <div className="text-2xl mb-2">{goal.emoji}</div>
                   <div className="font-medium text-sm">{goal.title}</div>
                   <div className={`text-xs mt-1 ${selectedGoals.includes(goal.id) ? 'text-white/80' : darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -436,70 +516,96 @@ export const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({ onComplete
 
       case 'equipment':
         return (
-          <div className="grid grid-cols-2 gap-3">
-            {equipmentOptions.map(option => (
-              <button
-                key={option.id}
-                onClick={() => {
-                  const equipment = option.title
-                  setProfile(prev => ({
-                    ...prev,
-                    preferences: {
-                      ...prev.preferences,
-                      equipment: prev.preferences.equipment.includes(equipment)
-                        ? prev.preferences.equipment.filter(e => e !== equipment)
-                        : [...prev.preferences.equipment, equipment]
-                    }
-                  }))
-                }}
-                className={`p-4 rounded-xl border-2 transition-all ${
-                  profile.preferences.equipment.includes(option.title)
-                    ? darkMode 
-                      ? 'bg-purple-600 border-purple-600 text-white'
-                      : 'bg-purple-500 border-purple-500 text-white'
-                    : darkMode
-                      ? 'bg-gray-800 border-gray-700 text-gray-300 hover:border-purple-500'
-                      : 'bg-white border-gray-200 text-gray-700 hover:border-purple-500'
-                }`}
-              >
-                <div className="text-2xl mb-1">{option.emoji}</div>
-                <div className="text-sm font-medium">{option.title}</div>
-              </button>
-            ))}
+          <div className="space-y-4">
+            <div className={`text-sm text-center mb-4 ${darkMode ? 'text-purple-300' : 'text-purple-600'}`}>
+              <span className="inline-flex items-center gap-2">
+                <span className="text-lg">✅</span>
+                複数選択可能です
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {equipmentOptions.map(option => (
+                <button
+                  key={option.id}
+                  onClick={() => {
+                    const equipment = option.title
+                    setProfile(prev => ({
+                      ...prev,
+                      preferences: {
+                        ...prev.preferences,
+                        equipment: prev.preferences.equipment.includes(equipment)
+                          ? prev.preferences.equipment.filter(e => e !== equipment)
+                          : [...prev.preferences.equipment, equipment]
+                      }
+                    }))
+                  }}
+                  className={`relative p-4 rounded-xl border-2 transition-all ${
+                    profile.preferences.equipment.includes(option.title)
+                      ? darkMode 
+                        ? 'bg-purple-600 border-purple-600 text-white shadow-lg'
+                        : 'bg-purple-500 border-purple-500 text-white shadow-lg'
+                      : darkMode
+                        ? 'bg-gray-800 border-gray-700 text-gray-300 hover:border-purple-500 hover:shadow-md'
+                        : 'bg-white border-gray-200 text-gray-700 hover:border-purple-500 hover:shadow-md'
+                  }`}
+                >
+                  {profile.preferences.equipment.includes(option.title) && (
+                    <div className="absolute top-2 right-2">
+                      <span className="text-lg">✓</span>
+                    </div>
+                  )}
+                  <div className="text-2xl mb-1">{option.emoji}</div>
+                  <div className="text-sm font-medium">{option.title}</div>
+                </button>
+              ))}
+            </div>
           </div>
         )
 
       case 'focus':
         return (
-          <div className="grid grid-cols-3 gap-3">
-            {focusOptions.map(option => (
-              <button
-                key={option.id}
-                onClick={() => {
-                  const area = option.title
-                  setProfile(prev => ({
-                    ...prev,
-                    preferences: {
-                      ...prev.preferences,
-                      focusAreas: prev.preferences.focusAreas.includes(area)
-                        ? prev.preferences.focusAreas.filter(a => a !== area)
-                        : [...prev.preferences.focusAreas, area]
-                    }
-                  }))
-                }}
-                className={`p-4 rounded-xl border-2 transition-all ${
-                  profile.preferences.focusAreas.includes(option.title)
-                    ? darkMode 
-                      ? 'bg-purple-600 border-purple-600 text-white'
-                      : 'bg-purple-500 border-purple-500 text-white'
-                    : darkMode
-                      ? 'bg-gray-800 border-gray-700 text-gray-300 hover:border-purple-500'
-                      : 'bg-white border-gray-200 text-gray-700 hover:border-purple-500'
-                }`}
-              >
-                <div className="text-sm font-medium">{option.title}</div>
-              </button>
-            ))}
+          <div className="space-y-4">
+            <div className={`text-sm text-center mb-4 ${darkMode ? 'text-purple-300' : 'text-purple-600'}`}>
+              <span className="inline-flex items-center gap-2">
+                <span className="text-lg">✅</span>
+                複数選択可能です
+              </span>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              {focusOptions.map(option => (
+                <button
+                  key={option.id}
+                  onClick={() => {
+                    const area = option.title
+                    setProfile(prev => ({
+                      ...prev,
+                      preferences: {
+                        ...prev.preferences,
+                        focusAreas: prev.preferences.focusAreas.includes(area)
+                          ? prev.preferences.focusAreas.filter(a => a !== area)
+                          : [...prev.preferences.focusAreas, area]
+                      }
+                    }))
+                  }}
+                  className={`relative p-4 rounded-xl border-2 transition-all ${
+                    profile.preferences.focusAreas.includes(option.title)
+                      ? darkMode 
+                        ? 'bg-purple-600 border-purple-600 text-white shadow-lg'
+                        : 'bg-purple-500 border-purple-500 text-white shadow-lg'
+                      : darkMode
+                        ? 'bg-gray-800 border-gray-700 text-gray-300 hover:border-purple-500 hover:shadow-md'
+                        : 'bg-white border-gray-200 text-gray-700 hover:border-purple-500 hover:shadow-md'
+                  }`}
+                >
+                  {profile.preferences.focusAreas.includes(option.title) && (
+                    <div className="absolute top-1 right-1">
+                      <span className="text-sm">✓</span>
+                    </div>
+                  )}
+                  <div className="text-sm font-medium">{option.title}</div>
+                </button>
+              ))}
+            </div>
           </div>
         )
 
@@ -573,6 +679,28 @@ export const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({ onComplete
           </div>
         )
 
+      case 'additional':
+        return (
+          <div className="space-y-4">
+            <div className={`text-sm mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+              トレーニングに関して配慮が必要なことや、目標達成のために伝えたいことがあれば教えてください。
+            </div>
+            <textarea
+              value={additionalInfo}
+              onChange={(e) => setAdditionalInfo(e.target.value)}
+              placeholder="例：腰痛持ちなので、腰に負担がかからないメニューを希望します..."
+              className={`w-full h-32 px-4 py-3 rounded-xl border-2 resize-none transition-all ${
+                darkMode 
+                  ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-purple-500' 
+                  : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-purple-500'
+              }`}
+            />
+            <div className={`text-xs text-right ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              任意入力
+            </div>
+          </div>
+        )
+
       default:
         return null
     }
@@ -631,7 +759,7 @@ export const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({ onComplete
           </div>
 
           <button
-            onClick={() => onComplete(profile)}
+            onClick={() => onComplete(completedProfile || profile)}
             className={`w-full mt-4 py-3 rounded-xl font-medium transition-all ${
               darkMode 
                 ? 'bg-gray-700 hover:bg-gray-600 text-gray-300'
