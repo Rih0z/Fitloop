@@ -248,20 +248,26 @@ function AppContent() {
   }
 
   const handleCopyPrompt = async () => {
-    if (!currentPrompt || !context || !profile) return
+    if (!currentPrompt) {
+      console.error('No prompt to copy')
+      return
+    }
 
     try {
       await clipboard.copy(currentPrompt)
       
-      // Save prompt with date format
-      const today = new Date()
-      const month = today.getMonth() + 1
-      const day = today.getDate()
-      const dateTitle = `${month}月${day}日の筋トレ記録`
-      
-      await storage.saveCurrentPromptAsLast(currentPrompt, dateTitle)
-      await loadSavedPrompts()
+      // Save prompt with date format only if we have profile and context
+      if (context && profile) {
+        const today = new Date()
+        const month = today.getMonth() + 1
+        const day = today.getDate()
+        const dateTitle = `${month}月${day}日の筋トレ記録`
+        
+        await storage.saveCurrentPromptAsLast(currentPrompt, dateTitle)
+        await loadSavedPrompts()
+      }
     } catch (err) {
+      console.error('Copy failed:', err)
       setError(t('clipboardAccessFailed'))
     }
   }

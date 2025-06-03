@@ -16,8 +16,12 @@ export function useClipboard() {
       // Reset copied state after 2 seconds
       setTimeout(() => setCopied(false), 2000)
     } catch (err) {
-      setError('Failed to copy to clipboard')
+      console.error('Clipboard copy error:', err)
+      setError(err instanceof Error ? err.message : 'Failed to copy to clipboard')
       setCopied(false)
+      
+      // Show alert as fallback
+      alert('クリップボードへのコピーに失敗しました。手動でテキストを選択してコピーしてください。')
     }
   }, [])
 
