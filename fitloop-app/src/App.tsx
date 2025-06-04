@@ -59,7 +59,8 @@ function AppContent() {
   })()
   
   const [showOnboarding, setShowOnboarding] = useState(false)
-  const [showAuthModal, setShowAuthModal] = useState(!debugMode) // Initialize based on debug mode
+  // For now, disable auth modal to make the app accessible
+  const [showAuthModal, setShowAuthModal] = useState(false) // Temporarily disabled
 
   // Load initial data
   useEffect(() => {
@@ -86,10 +87,11 @@ function AppContent() {
       return
     }
     
+    // Temporarily disable auth modal to make app accessible
     if (!authLoading && !isAuthenticated && !debugMode) {
-      setShowAuthModal(true)
+      // setShowAuthModal(true) // Temporarily commented out
     } else if (!profileLoading && !profile && isAuthenticated && !debugMode) {
-      setShowOnboarding(true)
+      // setShowOnboarding(true) // Temporarily commented out
     }
   }, [authLoading, isAuthenticated, profileLoading, profile, debugMode])
 
