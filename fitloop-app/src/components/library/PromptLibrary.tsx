@@ -186,16 +186,8 @@ export const PromptLibrary: React.FC = () => {
         }
       }
       
-      // Update local storage
-      if (prompt.promptType === 'saved' && prompt.id) {
-        await storage.updatePromptUsage(prompt.id)
-      } else if (prompt.promptType === 'generated' && prompt.id) {
-        // Update usage for generated prompts
-        const generatedPrompt = prompt as GeneratedPrompt
-        await storage.updateGeneratedPrompt(prompt.id, { ...generatedPrompt, used: true })
-      }
-      
-      await loadPrompts()
+      // Usage count tracking removed
+      // await loadPrompts() // No need to reload since we're not tracking usage
     } catch (error) {
       console.error('Failed to copy prompt:', error)
     }
@@ -451,18 +443,7 @@ export const PromptLibrary: React.FC = () => {
 
                 <div className={`flex items-center justify-between text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
                   <div className="flex items-center gap-4">
-                    {prompt.promptType === 'saved' && (prompt as SavedPrompt).usageCount > 0 && (
-                      <span className="flex items-center gap-1">
-                        <Star className="w-3 h-3" />
-                        {(prompt as SavedPrompt).usageCount}回使用
-                      </span>
-                    )}
-                    {prompt.promptType === 'generated' && (prompt as GeneratedPrompt).used && (
-                      <span className="flex items-center gap-1">
-                        <Star className="w-3 h-3" />
-                        使用済み
-                      </span>
-                    )}
+                    {/* Usage count display removed */}
                   </div>
                   <ChevronRight className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />
                 </div>
