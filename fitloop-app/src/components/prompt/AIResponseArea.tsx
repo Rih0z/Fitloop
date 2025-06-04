@@ -28,7 +28,7 @@ export const AIResponseArea: React.FC<AIResponseAreaProps> = ({
   const displayContent = () => {
     switch (activeTab) {
       case 'ai':
-        return aiResponse?.content || 'AI レスポンスはまだありません。'
+        return response || 'AI レスポンスはまだありません。'
       case 'insights':
         return learningData ? formatLearningData(learningData) : '学習データはまだありません。'
       default:
@@ -172,11 +172,11 @@ ${(data.recommendations || []).map((r: string) => `- ${r}`).join('\n')}`
         </div>
       )}
       
-      <div className="modern-input">
+      <div className="modern-input relative">
         <textarea
           value={displayContent()}
           onChange={(e) => {
-            if (activeTab === 'manual') {
+            if (activeTab === 'manual' || activeTab === 'ai') {
               onResponseChange(e.target.value)
             }
           }}
@@ -187,14 +187,30 @@ ${(data.recommendations || []).map((r: string) => `- ${r}`).join('\n')}`
               ? 'Claude、Gemini、ChatGPTからの応答をここに貼り付けてください...'
               : '学習データに基づく分析がここに表示されます...'
           }
-          disabled={loading || activeTab !== 'manual'}
-          readOnly={activeTab !== 'manual'}
+          disabled={loading}
+          readOnly={activeTab === 'insights'}
           className={`w-full h-[600px] text-lg leading-relaxed resize-none ${
             darkMode ? 'input-modern-dark' : 'input-modern'
           } ${loading ? 'opacity-50 cursor-not-allowed' : ''} ${
-            activeTab !== 'manual' ? 'cursor-default' : ''
+            activeTab === 'insights' ? 'cursor-default' : ''
           }`}
         />
+        
+        {/* Paste button for AI tab */}
+        {activeTab === 'ai' && (
+          <button
+            onClick={onPaste}
+            disabled={loading}
+            className={`absolute top-4 right-4 px-4 py-2 rounded-lg font-medium transition-all transform hover:scale-105 ${
+              darkMode 
+                ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg' 
+                : 'bg-blue-500 hover:bg-blue-600 text-white shadow-md'
+            } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            <ClipboardPaste className="inline w-4 h-4 mr-2" />
+            貼り付け
+          </button>
+        )}
       </div>
     </div>
   )
