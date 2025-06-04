@@ -1,28 +1,38 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
-import { useClipboard } from '../../../src/hooks/useClipboard'
-import { ClipboardService } from '../../../src/services/ClipboardService'
 
-// Mock ClipboardService
-vi.mock('../../../src/services/ClipboardService')
+// Mock ClipboardService before importing anything that uses it
+vi.mock('../../../src/services/ClipboardService', () => {
+  const mockCopy = vi.fn()
+  const mockPaste = vi.fn()
+  
+  return {
+    ClipboardService: vi.fn().mockImplementation(() => ({
+      copy: mockCopy,
+      paste: mockPaste
+    })),
+    _mockCopy: mockCopy,
+    _mockPaste: mockPaste
+  }
+})
+
+// Now import after mocking
+import { useClipboard } from '../../../src/hooks/useClipboard'
+// Get the mocked functions
+const { _mockCopy: mockCopy, _mockPaste: mockPaste } = await import('../../../src/services/ClipboardService')
 
 // Mock setTimeout and clearTimeout for testing
 vi.useFakeTimers()
 
-describe('useClipboard', () => {
-  const mockCopy = vi.fn()
-  const mockPaste = vi.fn()
+// Mock window.alert for error handling
+global.alert = vi.fn()
 
+describe('useClipboard', () => {
   beforeEach(() => {
-    // Setup the mock implementation
-    vi.mocked(ClipboardService).mockImplementation(() => ({
-      copy: mockCopy,
-      paste: mockPaste
-    }))
-    
     vi.clearAllMocks()
-    mockCopy.mockReset()
-    mockPaste.mockReset()
+    vi.mocked(global.alert).mockClear()
+    vi.mocked(mockCopy).mockReset()
+    vi.mocked(mockPaste).mockReset()
   })
 
   afterEach(() => {
@@ -44,7 +54,7 @@ describe('useClipboard', () => {
 
   describe('copy function', () => {
     it('should copy text successfully', async () => {
-      mockCopy.mockResolvedValue(undefined)
+      vi.mocked(mockCopy).mockResolvedValue(undefined)
       const { result } = renderHook(() => useClipboard())
 
       await act(async () => {
@@ -57,7 +67,7 @@ describe('useClipboard', () => {
     })
 
     it('should reset copied state after 2 seconds', async () => {
-      mockCopy.mockResolvedValue(undefined)
+      vi.mocked(mockCopy).mockResolvedValue(undefined)
       const { result } = renderHook(() => useClipboard())
 
       await act(async () => {
@@ -76,7 +86,7 @@ describe('useClipboard', () => {
 
     it('should handle copy errors', async () => {
       const error = new Error('Copy failed')
-      mockCopy.mockRejectedValue(error)
+      vi.mocked(mockCopy).mockRejectedValue(error)
       const { result } = renderHook(() => useClipboard())
 
       await act(async () => {
@@ -84,22 +94,23 @@ describe('useClipboard', () => {
       })
 
       expect(result.current.copied).toBe(false)
-      expect(result.current.error).toBe('Failed to copy to clipboard')
+      expect(result.current.error).toBe('Copy failed')
+      expect(global.alert).toHaveBeenCalledWith('クリップボードへのコピーに失敗しました。手動でテキストを選択してコピーしてください。')
     })
 
     it('should clear previous errors on successful copy', async () => {
       // First call fails
-      mockCopy.mockRejectedValueOnce(new Error('First error'))
+      vi.mocked(mockCopy).mockRejectedValueOnce(new Error('First error'))
       const { result } = renderHook(() => useClipboard())
 
       await act(async () => {
         await result.current.copy('test text')
       })
 
-      expect(result.current.error).toBe('Failed to copy to clipboard')
+      expect(result.current.error).toBe('First error')
 
       // Second call succeeds
-      mockCopy.mockResolvedValue(undefined)
+      vi.mocked(mockCopy).mockResolvedValue(undefined)
 
       await act(async () => {
         await result.current.copy('test text')
@@ -113,7 +124,7 @@ describe('useClipboard', () => {
   describe('paste function', () => {
     it('should paste text successfully', async () => {
       const pastedText = 'pasted content'
-      mockPaste.mockResolvedValue(pastedText)
+      vi.mocked(mockPaste).mockResolvedValue(pastedText)
       const { result } = renderHook(() => useClipboard())
 
       let pasteResult: string = ''
@@ -128,7 +139,7 @@ describe('useClipboard', () => {
 
     it('should handle paste errors', async () => {
       const error = new Error('Paste failed')
-      mockPaste.mockRejectedValue(error)
+      vi.mocked(mockPaste).mockRejectedValue(error)
       const { result } = renderHook(() => useClipboard())
 
       await act(async () => {
@@ -144,7 +155,7 @@ describe('useClipboard', () => {
 
     it('should clear previous errors on successful paste', async () => {
       // First call fails
-      mockPaste.mockRejectedValueOnce(new Error('First error'))
+      vi.mocked(mockPaste).mockRejectedValueOnce(new Error('First error'))
       const { result } = renderHook(() => useClipboard())
 
       await act(async () => {
@@ -158,7 +169,7 @@ describe('useClipboard', () => {
       expect(result.current.error).toBe('Failed to paste from clipboard')
 
       // Second call succeeds
-      mockPaste.mockResolvedValue('success')
+      vi.mocked(mockPaste).mockResolvedValue('success')
 
       await act(async () => {
         await result.current.paste()
@@ -168,7 +179,7 @@ describe('useClipboard', () => {
     })
 
     it('should return empty string when pasting empty clipboard', async () => {
-      mockPaste.mockResolvedValue('')
+      vi.mocked(mockPaste).mockResolvedValue('')
       const { result } = renderHook(() => useClipboard())
 
       let pasteResult: string = ''
@@ -183,7 +194,7 @@ describe('useClipboard', () => {
 
   describe('multiple operations', () => {
     it('should handle multiple copy operations', async () => {
-      mockCopy.mockResolvedValue(undefined)
+      vi.mocked(mockCopy).mockResolvedValue(undefined)
       const { result } = renderHook(() => useClipboard())
 
       // First copy

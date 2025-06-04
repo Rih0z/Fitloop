@@ -609,7 +609,7 @@ describe('StorageManager', () => {
 
   describe('Database versioning', () => {
     it('should handle database version', () => {
-      expect(db.verno).toBe(3)
+      expect(db.verno).toBe(31)
       expect(db.name).toBe('FitLoopDB')
     })
 

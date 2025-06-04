@@ -10,10 +10,12 @@ const mockClipboard = {
 describe('ClipboardService', () => {
   let clipboardService: ClipboardService
   let originalClipboard: any
+  let originalExecCommand: any
 
   beforeEach(() => {
-    // Store original clipboard
+    // Store original clipboard and execCommand
     originalClipboard = navigator.clipboard
+    originalExecCommand = document.execCommand
     
     // Set up mock clipboard
     Object.defineProperty(navigator, 'clipboard', {
@@ -21,6 +23,9 @@ describe('ClipboardService', () => {
       writable: true,
       configurable: true
     })
+    
+    // Mock document.execCommand
+    document.execCommand = vi.fn().mockReturnValue(true)
     
     clipboardService = new ClipboardService()
     vi.clearAllMocks()
@@ -33,6 +38,9 @@ describe('ClipboardService', () => {
       writable: true,
       configurable: true
     })
+    
+    // Restore original execCommand
+    document.execCommand = originalExecCommand
   })
 
   describe('copy', () => {
@@ -46,7 +54,7 @@ describe('ClipboardService', () => {
       expect(mockClipboard.writeText).toHaveBeenCalledTimes(1)
     })
 
-    it('should throw error when clipboard API is not available', async () => {
+    it('should fallback to execCommand when clipboard API is not available', async () => {
       // Mock clipboard as undefined
       Object.defineProperty(navigator, 'clipboard', {
         value: undefined,
@@ -54,7 +62,9 @@ describe('ClipboardService', () => {
         configurable: true
       })
 
-      await expect(clipboardService.copy('test')).rejects.toThrow('Clipboard API not available')
+      await clipboardService.copy('test')
+      
+      expect(document.execCommand).toHaveBeenCalledWith('copy')
       
       // Restore mock clipboard for other tests
       Object.defineProperty(navigator, 'clipboard', {
@@ -64,11 +74,13 @@ describe('ClipboardService', () => {
       })
     })
 
-    it('should handle clipboard write errors', async () => {
+    it('should handle clipboard write errors by falling back to execCommand', async () => {
       const error = new Error('Clipboard write failed')
       mockClipboard.writeText.mockRejectedValue(error)
 
-      await expect(clipboardService.copy('test')).rejects.toThrow('Clipboard write failed')
+      await clipboardService.copy('test')
+      
+      expect(document.execCommand).toHaveBeenCalledWith('copy')
     })
   })
 
@@ -91,7 +103,7 @@ describe('ClipboardService', () => {
         configurable: true
       })
 
-      await expect(clipboardService.paste()).rejects.toThrow('Clipboard API not available')
+      await expect(clipboardService.paste()).rejects.toThrow('Clipboard read not supported in this browser')
       
       // Restore mock clipboard for other tests
       Object.defineProperty(navigator, 'clipboard', {
@@ -105,7 +117,7 @@ describe('ClipboardService', () => {
       const error = new Error('Clipboard read failed')
       mockClipboard.readText.mockRejectedValue(error)
 
-      await expect(clipboardService.paste()).rejects.toThrow('Clipboard read failed')
+      await expect(clipboardService.paste()).rejects.toThrow('Clipboard access denied. Please paste manually.')
     })
 
     it('should return empty string when clipboard is empty', async () => {
