@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { BookOpen, Search, Star, Copy, Trash2, ChevronRight, Sparkles, User, Target } from 'lucide-react'
+import { BookOpen, Search, Star, Copy, Trash2, ChevronRight, Sparkles, User, Target, Activity, Edit3 } from 'lucide-react'
 import { useTheme } from '../../hooks/useTheme'
 import { apiService } from '../../services/ApiService'
 import { StorageManager } from '../../lib/db'
@@ -378,8 +378,13 @@ export const PromptLibrary: React.FC = () => {
                           ? 'bg-blue-500/20 text-blue-500'
                           : 'bg-gray-500/20 text-gray-500'
                       }`}>
-                        {getPromptSource(prompt) === 'profile' ? '👤 プロフィール' :
-                         getPromptSource(prompt) === 'training' ? '📋 トレーニング記録' : '✏️ 手動作成'}
+                        {getPromptSource(prompt) === 'profile' ? (
+                          <><User className="w-3 h-3 inline mr-1" />プロフィール</>
+                        ) : getPromptSource(prompt) === 'training' ? (
+                          <><Activity className="w-3 h-3 inline mr-1" />トレーニング記録</>
+                        ) : (
+                          <><Edit3 className="w-3 h-3 inline mr-1" />手動作成</>
+                        )}
                       </span>
                       <span className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
                         {formatDate(prompt.createdAt)}

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Dumbbell } from 'lucide-react'
 import { Header } from './components/layout/Header'
 import { TabBar } from './components/layout/TabBar'
 import { PromptDisplay } from './components/prompt/PromptDisplay'
@@ -392,7 +393,9 @@ function AppContent() {
       <>
         <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gradient-to-br from-gray-900 to-black' : 'bg-gradient-to-br from-gray-50 to-white'}`}>
           <div className="text-center space-y-8">
-            <div className="text-6xl mb-4">🏋️‍♀️</div>
+            <div className="mb-4">
+              <Dumbbell className="w-16 h-16 mx-auto text-purple-500" />
+            </div>
             <h1 className={`text-4xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
               FitLoop
             </h1>

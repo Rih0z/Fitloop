@@ -131,12 +131,51 @@ npm run test:coverage
 ## Contact
 For questions about the codebase, refer to this document first. The app is designed to be self-contained with minimal external dependencies.
 
+## Development Philosophy
+
+### Ultrathink
+Don't hold back. give it your all！
+日本語で回答して。
+
+## Code Quality Standards
+
+### SOLID原則の遵守
+実装は必ずSOLID原則に従っているか確認すること：
+
+1. **Single Responsibility Principle (単一責任の原則)**
+   - 各クラス・関数は一つの責任のみを持つ
+   - 変更理由は一つだけであるべき
+
+2. **Open/Closed Principle (開放閉鎖の原則)**
+   - 拡張に対して開かれ、修正に対して閉じている
+   - 新機能追加時に既存コードを変更しない
+
+3. **Liskov Substitution Principle (リスコフの置換原則)**
+   - 派生型は基底型と置換可能であるべき
+   - インターフェースの契約を守る
+
+4. **Interface Segregation Principle (インターフェース分離の原則)**
+   - クライアントが使わないメソッドに依存させない
+   - 小さく特化したインターフェースを作る
+
+5. **Dependency Inversion Principle (依存性逆転の原則)**
+   - 上位モジュールは下位モジュールに依存しない
+   - 両者とも抽象に依存すべき
+
 ## Important Development Guidelines
 
 ### Deployment Checklist
 - 作業が完了したらgithubに追加すること
 - 作業が完了したらClaude環境でビルドしデプロイすること
+- READMEにデプロイ先を記載して
 - githubへのプッシュ前にセキュリティ上の問題がないか確認すること
+- 実装を変更したらそれに合わせてドキュメントも更新すること
+- 必ずURLが固定の本番環境にデプロイするようにして
+- フロントエンドとバックエンドの通信が必ず成功するように固定のAPIを指定して
+
+### Production URLs
+- **Frontend Production URL**: https://fitloop-app.pages.dev (固定URL)
+- **Backend API URL**: https://fitloop-backend.riho-dare.workers.dev/api (固定URL)
 
 ### Security Verification
 Before pushing to GitHub:
@@ -145,6 +184,8 @@ Before pushing to GitHub:
 3. Ensure no sensitive data in console logs
 4. Review environment variables usage
 5. Confirm no hardcoded credentials
+6. Verify API endpoints are using production URLs
+7. Check for any development/test code that should be removed
 
 ## Prompt Template Structure
 

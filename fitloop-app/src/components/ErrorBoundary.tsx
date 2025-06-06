@@ -56,7 +56,7 @@ export class ErrorBoundary extends Component<Props, State> {
             boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
           }}>
             <h1 style={{ color: '#e53e3e', marginBottom: '20px' }}>
-              ⚠️ エラーが発生しました
+              ⚠ エラーが発生しました
             </h1>
             <p style={{ marginBottom: '20px', color: '#4a5568' }}>
               申し訳ございません。アプリケーションでエラーが発生しました。

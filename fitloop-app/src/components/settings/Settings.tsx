@@ -1,30 +1,32 @@
-import React from 'react'
-import { Settings as SettingsIcon, Book, Heart, Github, Mail, Moon, Sun, Globe } from 'lucide-react'
+import React, { useState } from 'react'
+import { Settings as SettingsIcon, Book, Heart, Github, Mail, Moon, Sun, Globe, Bot, BarChart3, Dumbbell, Crosshair, Download } from 'lucide-react'
 import { useTheme } from '../../hooks/useTheme'
 import { useTranslation } from '../../hooks/useTranslation'
+import { DataImport } from '../profile/DataImport'
 
 export const Settings: React.FC = () => {
   const { darkMode, toggleDarkMode } = useTheme()
   const { language, toggleLanguage } = useTranslation()
+  const [showDataImport, setShowDataImport] = useState(false)
 
   const features = [
     { 
-      icon: '🤖', 
+      icon: Bot, 
       title: 'AI統合', 
       description: 'Claude、ChatGPT、Geminiとのシームレスな連携' 
     },
     { 
-      icon: '📊', 
+      icon: BarChart3, 
       title: '学習システム', 
       description: 'あなたの進捗を分析し、最適な重量を提案' 
     },
     { 
-      icon: '💪', 
+      icon: Dumbbell, 
       title: 'パーソナライズ', 
       description: '個人に最適化されたトレーニングプラン' 
     },
     { 
-      icon: '🎯', 
+      icon: Crosshair, 
       title: 'ゼロフリクション', 
       description: 'シンプルで直感的な操作性' 
     }
@@ -131,6 +133,31 @@ export const Settings: React.FC = () => {
                 {language === 'ja' ? 'EN' : 'JP'}
               </button>
             </div>
+
+            {/* Data Import */}
+            <div className="flex items-center justify-between py-3">
+              <div className="flex items-center gap-3">
+                <Download className="w-5 h-5 text-green-500" />
+                <div>
+                  <p className={`font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                    AIデータインポート
+                  </p>
+                  <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    AIツールから現在の状況をインポート
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowDataImport(true)}
+                className={`px-4 py-2 rounded-lg transition-colors ${
+                  darkMode 
+                    ? 'bg-green-600 hover:bg-green-700 text-white' 
+                    : 'bg-green-600 hover:bg-green-700 text-white'
+                }`}
+              >
+                開始
+              </button>
+            </div>
           </div>
         </div>
 
@@ -148,7 +175,9 @@ export const Settings: React.FC = () => {
                   darkMode ? 'bg-gray-700/50' : 'bg-gray-50'
                 } transition-all hover:scale-105`}
               >
-                <div className="text-3xl mb-2">{feature.icon}</div>
+                <div className="mb-2">
+                  <feature.icon className="w-8 h-8" />
+                </div>
                 <h3 className={`font-semibold mb-1 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                   {feature.title}
                 </h3>
@@ -242,6 +271,18 @@ export const Settings: React.FC = () => {
           </p>
         </div>
       </div>
+
+      {/* データインポートモーダル */}
+      {showDataImport && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <DataImport
+              onComplete={() => setShowDataImport(false)}
+              onCancel={() => setShowDataImport(false)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

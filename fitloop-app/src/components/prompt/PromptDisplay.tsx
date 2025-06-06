@@ -1,5 +1,5 @@
 import React from 'react'
-import { Copy, Check } from 'lucide-react'
+import { Copy, Check, Lightbulb } from 'lucide-react'
 import { useTranslation } from '../../hooks/useTranslation'
 import { useTheme } from '../../hooks/useTheme'
 
@@ -29,8 +29,9 @@ export const PromptDisplay: React.FC<PromptDisplayProps> = ({
           <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
             {t('promptDescription')}
           </p>
-          <div className={`mt-2 text-xs ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
-            💡 Claude・Gemini・ChatGPTに貼り付けて使用してください
+          <div className={`mt-2 text-xs flex items-center gap-1 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+            <Lightbulb className="w-3 h-3" />
+            Claude・Gemini・ChatGPTに貼り付けて使用してください
           </div>
         </div>
         <button

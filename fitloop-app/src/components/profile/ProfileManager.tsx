@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import { User, Target, Activity, TrendingUp, Save, Edit3, Plus, X } from 'lucide-react'
+import { User, Target, Activity, TrendingUp, Save, Edit3, Plus, X, Dumbbell, Zap, Rocket, Heart, Activity as ActivityIcon, Smile, Star, BrainCircuit, Star as StarIcon, Check, Download } from 'lucide-react'
 import { useTheme } from '../../hooks/useTheme'
 import type { UserProfile } from '../../models/user'
 import type { GeneratedPrompt } from '../../models/prompt'
 import { StorageManager } from '../../lib/db'
+import { DataImport } from './DataImport'
 
 const storage = new StorageManager()
 
@@ -47,6 +48,7 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
   const [selectedGoals, setSelectedGoals] = useState<string[]>([])
   const [customGoal, setCustomGoal] = useState<string>('')
   const [showCustomGoal, setShowCustomGoal] = useState<boolean>(false)
+  const [showDataImport, setShowDataImport] = useState<boolean>(false)
   
   const equipmentOptions = [
     'ダンベル', 'バーベル', 'ケトルベル', 'レジスタンスバンド',
@@ -62,49 +64,49 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
       id: 'muscle_gain',
       title: '筋肉をつけてカッコよくなりたい',
       description: '引き締まったボディで自信を持ちたい',
-      emoji: '💪'
+      icon: Dumbbell
     },
     {
       id: 'weight_loss',
       title: '体重を減らして軽やかに動きたい',
       description: '理想の体型で毎日をアクティブに',
-      emoji: '✨'
+      icon: Zap
     },
     {
       id: 'strength',
       title: '力強くなって日常をラクに',
       description: '重い物を持つのも、階段を登るのも楽々',
-      emoji: '🚀'
+      icon: Rocket
     },
     {
       id: 'health',
       title: '健康的な体で長生きしたい',
       description: '病気知らず、エネルギッシュな毎日を',
-      emoji: '❤️'
+      icon: Heart
     },
     {
       id: 'endurance',
       title: '持久力をつけて疲れ知らず',
       description: '一日中アクティブに動けるスタミナを',
-      emoji: '🏃'
+      icon: ActivityIcon
     },
     {
       id: 'flexibility',
       title: '柔軟性を高めて体の不調を解消',
       description: '肩こり、腰痛とおさらばして快適に',
-      emoji: '🧘'
+      icon: Smile
     },
     {
       id: 'confidence',
       title: '自信をつけて人生を変えたい',
       description: '鏡の中の自分を好きになって積極的に',
-      emoji: '🌟'
+      icon: Star
     },
     {
       id: 'stress_relief',
       title: 'ストレス発散で心をスッキリ',
       description: '運動でメンタルもリフレッシュ',
-      emoji: '😌'
+      icon: BrainCircuit
     }
   ]
 
@@ -311,19 +313,32 @@ ${profile.preferences.focusAreas.map(area => {
             </p>
           </div>
         </div>
-        {!editMode && initialProfile && (
+        <div className="flex gap-3">
           <button
-            onClick={() => setEditMode(true)}
+            onClick={() => setShowDataImport(true)}
             className={`px-4 py-2 rounded-xl flex items-center gap-2 transition-all ${
               darkMode 
-                ? 'bg-white/10 hover:bg-white/20 text-white' 
-                : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                ? 'bg-blue-500 hover:bg-blue-600 text-white' 
+                : 'bg-blue-500 hover:bg-blue-600 text-white'
             }`}
           >
-            <Edit3 className="w-4 h-4" />
-            編集
+            <Download className="w-4 h-4" />
+            AIインポート
           </button>
-        )}
+          {!editMode && initialProfile && (
+            <button
+              onClick={() => setEditMode(true)}
+              className={`px-4 py-2 rounded-xl flex items-center gap-2 transition-all ${
+                darkMode 
+                  ? 'bg-white/10 hover:bg-white/20 text-white' 
+                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+              }`}
+            >
+              <Edit3 className="w-4 h-4" />
+              編集
+            </button>
+          )}
+        </div>
       </div>
 
       {/* 基本情報セクション */}
@@ -443,7 +458,7 @@ ${profile.preferences.focusAreas.map(area => {
           <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
             あなたの理想の未来は？
           </h3>
-          <span className="text-xl">🌟</span>
+          <StarIcon className="w-5 h-5" />
         </div>
         <div className={`p-4 rounded-xl mb-6 ${darkMode ? 'bg-purple-900/20 border border-purple-700/30' : 'bg-purple-50 border border-purple-200'}`}>
           <p className={`text-sm ${darkMode ? 'text-purple-200' : 'text-purple-700'}`}>
@@ -470,10 +485,10 @@ ${profile.preferences.focusAreas.map(area => {
                   }`}
                 >
                   <div className="flex items-start gap-3">
-                    <div className={`text-2xl transition-transform ${
+                    <div className={`transition-transform ${
                       selectedGoals.includes(goal.id) ? 'scale-110' : 'group-hover:scale-105'
                     }`}>
-                      {goal.emoji}
+                      <goal.icon className="w-8 h-8" />
                     </div>
                     <div className="flex-1">
                       <h4 className={`font-semibold text-base mb-1 ${
@@ -495,7 +510,8 @@ ${profile.preferences.focusAreas.map(area => {
                           <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                             darkMode ? 'bg-purple-500/30 text-purple-300' : 'bg-purple-500/20 text-purple-700'
                           }`}>
-                            ✓ 選択中
+                            <Check className="w-3 h-3 mr-1" />
+                            選択中
                           </span>
                         </div>
                       )}
@@ -515,7 +531,7 @@ ${profile.preferences.focusAreas.map(area => {
                     : 'bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-200'
                 }`}
               >
-                <span className="text-lg">✨</span>
+                <Zap className="w-4 h-4" />
                 <span className="font-medium">オリジナルの目標を追加</span>
                 <span className={`transition-transform ${showCustomGoal ? 'rotate-180' : ''}`}>▼</span>
               </button>
@@ -562,7 +578,7 @@ ${profile.preferences.focusAreas.map(area => {
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-lg">🎯</span>
+                  <Target className="w-4 h-4" />
                   <span className="font-medium">{goal.trim()}</span>
                 </div>
               </div>
@@ -903,6 +919,21 @@ ${profile.preferences.focusAreas.map(area => {
               </div>
             </div>
             <TrendingUp className={`w-8 h-8 ${darkMode ? 'text-gray-600' : 'text-gray-400'}`} />
+          </div>
+        </div>
+      )}
+
+      {/* データインポートモーダル */}
+      {showDataImport && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <DataImport
+              onComplete={() => {
+                setShowDataImport(false)
+                onProfileUpdate()
+              }}
+              onCancel={() => setShowDataImport(false)}
+            />
           </div>
         </div>
       )}

@@ -1,4 +1,5 @@
 import React from 'react'
+import { TrendingUp, TrendingDown, ArrowRight, Dumbbell, Activity, Heart, CheckCircle, AlertTriangle } from 'lucide-react'
 import { useTheme } from '../../hooks/useTheme'
 
 interface ProgressData {
@@ -44,9 +45,9 @@ export const ProgressChart: React.FC<ProgressChartProps> = ({ data, className = 
 
   const getTrendIcon = (trend: string) => {
     switch (trend) {
-      case 'improving': return '📈'
-      case 'declining': return '📉'
-      default: return '➡️'
+      case 'improving': return TrendingUp
+      case 'declining': return TrendingDown
+      default: return ArrowRight
     }
   }
 
@@ -65,7 +66,7 @@ export const ProgressChart: React.FC<ProgressChartProps> = ({ data, className = 
               </span>
               <div className="flex items-center gap-2">
                 <span className={getTrendColor(exercise.trend)}>
-                  {getTrendIcon(exercise.trend)}
+                  {React.createElement(getTrendIcon(exercise.trend), { className: 'w-4 h-4' })}
                 </span>
                 <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                   {exercise.history[0]?.weight || 0}kg
@@ -136,7 +137,8 @@ export const MuscleBalanceChart: React.FC<MuscleBalanceChartProps> = ({ data, cl
         <div>
           <div className="flex justify-between items-center mb-1">
             <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              上半身 💪
+              <Dumbbell className="w-4 h-4 inline mr-1" />
+              上半身
             </span>
             <span className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
               {Math.round(upperPerc)}%
@@ -154,7 +156,8 @@ export const MuscleBalanceChart: React.FC<MuscleBalanceChartProps> = ({ data, cl
         <div>
           <div className="flex justify-between items-center mb-1">
             <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              下半身 🦵
+              <Activity className="w-4 h-4 inline mr-1" />
+              下半身
             </span>
             <span className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
               {Math.round(lowerPerc)}%
@@ -172,7 +175,8 @@ export const MuscleBalanceChart: React.FC<MuscleBalanceChartProps> = ({ data, cl
         <div>
           <div className="flex justify-between items-center mb-1">
             <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              体幹 🫀
+              <Heart className="w-4 h-4 inline mr-1" />
+              体幹
             </span>
             <span className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
               {Math.round(corePerc)}%
@@ -190,12 +194,15 @@ export const MuscleBalanceChart: React.FC<MuscleBalanceChartProps> = ({ data, cl
       {/* バランス評価 */}
       <div className="mt-4 p-3 rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600">
         <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-          {Math.abs(upperPerc - lowerPerc) < 15 
-            ? '✅ バランス良好！'
-            : upperPerc > lowerPerc 
-            ? '⚠️ 下半身トレーニングを強化しましょう'
-            : '⚠️ 上半身トレーニングを強化しましょう'
-          }
+          <span className="flex items-center gap-2">
+            {Math.abs(upperPerc - lowerPerc) < 15 ? (
+              <><CheckCircle className="w-4 h-4 text-green-500" /> バランス良好！</>
+            ) : upperPerc > lowerPerc ? (
+              <><AlertTriangle className="w-4 h-4 text-yellow-500" /> 下半身トレーニングを強化しましょう</>
+            ) : (
+              <><AlertTriangle className="w-4 h-4 text-yellow-500" /> 上半身トレーニングを強化しましょう</>
+            )}
+          </span>
         </p>
       </div>
     </div>

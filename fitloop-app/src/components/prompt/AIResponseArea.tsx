@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { ClipboardPaste, Brain, TrendingUp, Sparkles } from 'lucide-react'
+import { ClipboardPaste, Brain, TrendingUp, Sparkles, MessageSquare, Lightbulb, Bot, Megaphone } from 'lucide-react'
 import { useTranslation } from '../../hooks/useTranslation'
 import { useTheme } from '../../hooks/useTheme'
 import type { AIResponse } from '../../interfaces/IAIService'
@@ -129,21 +129,23 @@ ${(data.recommendations || []).map((r: string) => `- ${r}`).join('\n')}`
           <div className="flex items-start gap-3">
             <Brain className={`w-5 h-5 mt-0.5 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
             <div>
-              <h3 className={`font-semibold mb-2 ${darkMode ? 'text-blue-400' : 'text-blue-800'}`}>
-                💡 AI応答の取得方法
+              <h3 className={`font-semibold mb-2 flex items-center gap-2 ${darkMode ? 'text-blue-400' : 'text-blue-800'}`}>
+                <Lightbulb className="w-5 h-5" />
+                AI応答の取得方法
               </h3>
               <div className={`text-sm space-y-2 ${darkMode ? 'text-blue-200' : 'text-blue-700'}`}>
                 <p><strong>1.</strong> 左のプロンプトをコピーして以下のAIサービスに貼り付けてください：</p>
                 <div className="ml-4 space-y-1">
-                  <div>🤖 <a href="https://claude.ai" target="_blank" rel="noopener" className="underline hover:no-underline">Claude (Anthropic)</a></div>
-                  <div>✨ <a href="https://gemini.google.com" target="_blank" rel="noopener" className="underline hover:no-underline">Gemini (Google)</a></div>
-                  <div>💬 <a href="https://chat.openai.com" target="_blank" rel="noopener" className="underline hover:no-underline">ChatGPT (OpenAI)</a></div>
+                  <div className="flex items-center gap-2"><Bot className="w-4 h-4" /> <a href="https://claude.ai" target="_blank" rel="noopener" className="underline hover:no-underline">Claude (Anthropic)</a></div>
+                  <div className="flex items-center gap-2"><Sparkles className="w-4 h-4" /> <a href="https://gemini.google.com" target="_blank" rel="noopener" className="underline hover:no-underline">Gemini (Google)</a></div>
+                  <div className="flex items-center gap-2"><MessageSquare className="w-4 h-4" /> <a href="https://chat.openai.com" target="_blank" rel="noopener" className="underline hover:no-underline">ChatGPT (OpenAI)</a></div>
                 </div>
                 <p><strong>2.</strong> AIの応答をコピーして、このエリアに貼り付けてください</p>
                 <p><strong>3.</strong> 貼り付けボタンを押すと、自動でトレーニング記録として保存されます</p>
               </div>
-              <div className={`mt-3 p-2 rounded text-xs ${darkMode ? 'bg-amber-900/30 text-amber-200' : 'bg-amber-100 text-amber-700'}`}>
-                <strong>📢 今後の予定：</strong> ユーザー数が増加次第、AI生成機能を直接実装予定です！
+              <div className={`mt-3 p-2 rounded text-xs flex items-start gap-2 ${darkMode ? 'bg-amber-900/30 text-amber-200' : 'bg-amber-100 text-amber-700'}`}>
+                <Megaphone className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                <span><strong>今後の予定：</strong> ユーザー数が増加次第、AI生成機能を直接実装予定です！</span>
               </div>
             </div>
           </div>

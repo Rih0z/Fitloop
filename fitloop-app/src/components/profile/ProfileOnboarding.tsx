@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { ChevronLeft, ChevronRight, Sparkles, Copy, Check } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Sparkles, Copy, Check, User, FileText, Ruler, Zap, Dumbbell, Home, Crosshair, Calendar, MessageSquare, Target, Heart, Activity, Smile, Sunrise, Sun, Moon, RotateCcw, HardHat, Dumbbell as DumbbellIcon, Bell, Scissors, DoorOpen, Hand, Star, TreePine, Building2, Lightbulb } from 'lucide-react'
 import { useTheme } from '../../hooks/useTheme'
 import { apiService } from '../../services/ApiService'
 import type { UserProfile } from '../../models/user'
@@ -18,6 +18,19 @@ type Step = {
   title: string
   subtitle: string
   emoji: string
+}
+
+const stepIcons = {
+  name: User,
+  basic: FileText,
+  body: Ruler,
+  goals: Zap,
+  experience: Dumbbell,
+  environment: Home,
+  equipment: DumbbellIcon,
+  focus: Crosshair,
+  schedule: Calendar,
+  additional: MessageSquare
 }
 
 const steps: Step[] = [
@@ -67,52 +80,52 @@ export const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({ onComplete
   const [isGenerating, setIsGenerating] = useState(false)
 
   const goalOptions = [
-    { id: 'muscle', title: '筋肉をつける', subtitle: '引き締まった体に', emoji: '💪' },
-    { id: 'weight', title: '体重を落とす', subtitle: '理想の体型へ', emoji: '⚡' },
-    { id: 'strength', title: '力を強く', subtitle: '日常が楽に', emoji: '🚀' },
-    { id: 'health', title: '健康的に', subtitle: '元気な毎日を', emoji: '❤️' },
-    { id: 'endurance', title: '持久力UP', subtitle: '疲れ知らずに', emoji: '🏃' },
-    { id: 'flexibility', title: '柔軟性向上', subtitle: '体の不調解消', emoji: '🧘' }
+    { id: 'muscle', title: '筋肉をつける', subtitle: '引き締まった体に', icon: Dumbbell },
+    { id: 'weight', title: '体重を落とす', subtitle: '理想の体型へ', icon: Zap },
+    { id: 'strength', title: '力を強く', subtitle: '日常が楽に', icon: Target },
+    { id: 'health', title: '健康的に', subtitle: '元気な毎日を', icon: Heart },
+    { id: 'endurance', title: '持久力UP', subtitle: '疲れ知らずに', icon: Activity },
+    { id: 'flexibility', title: '柔軟性向上', subtitle: '体の不調解消', icon: Smile }
   ]
 
   const experienceOptions = [
-    { id: 'beginner', title: '初心者', subtitle: '1年未満', emoji: '🌱' },
-    { id: 'intermediate', title: '中級者', subtitle: '1-3年', emoji: '🌿' },
-    { id: 'advanced', title: '上級者', subtitle: '3年以上', emoji: '🌳' }
+    { id: 'beginner', title: '初心者', subtitle: '1年未満', icon: Sunrise },
+    { id: 'intermediate', title: '中級者', subtitle: '1-3年', icon: Sun },
+    { id: 'advanced', title: '上級者', subtitle: '3年以上', icon: TreePine }
   ]
 
   const environmentOptions = [
-    { id: 'home', title: '自宅', emoji: '🏠' },
-    { id: 'gym', title: 'ジム', emoji: '🏋️' },
-    { id: 'park', title: '公園', emoji: '🌳' },
-    { id: 'both', title: '両方', emoji: '🔄' }
+    { id: 'home', title: '自宅', icon: Home },
+    { id: 'gym', title: 'ジム', icon: Building2 },
+    { id: 'park', title: '公園', icon: TreePine },
+    { id: 'both', title: '両方', icon: RotateCcw }
   ]
 
   const equipmentOptions = [
-    { id: 'dumbbells', title: 'ダンベル', emoji: '🏋️' },
-    { id: 'barbell', title: 'バーベル', emoji: '💪' },
-    { id: 'kettlebell', title: 'ケトルベル', emoji: '🔔' },
-    { id: 'bands', title: 'バンド', emoji: '🪢' },
-    { id: 'pullupbar', title: 'プルアップバー', emoji: '🚪' },
-    { id: 'bench', title: 'ベンチ', emoji: '🪑' },
-    { id: 'none', title: '自重のみ', emoji: '🙌' }
+    { id: 'dumbbells', title: 'ダンベル', icon: DumbbellIcon },
+    { id: 'barbell', title: 'バーベル', icon: Dumbbell },
+    { id: 'kettlebell', title: 'ケトルベル', icon: Bell },
+    { id: 'bands', title: 'バンド', icon: Scissors },
+    { id: 'pullupbar', title: 'プルアップバー', icon: DoorOpen },
+    { id: 'bench', title: 'ベンチ', icon: HardHat },
+    { id: 'none', title: '自重のみ', icon: Hand }
   ]
 
   const focusOptions = [
-    { id: 'chest', title: '胸筋', emoji: '🎯' },
-    { id: 'back', title: '背筋', emoji: '🎯' },
-    { id: 'shoulders', title: '肩', emoji: '🎯' },
-    { id: 'arms', title: '腕', emoji: '🎯' },
-    { id: 'abs', title: '腹筋', emoji: '🎯' },
-    { id: 'legs', title: '脚', emoji: '🎯' },
-    { id: 'fullbody', title: '全身', emoji: '⭐' }
+    { id: 'chest', title: '胸筋', icon: Crosshair },
+    { id: 'back', title: '背筋', icon: Crosshair },
+    { id: 'shoulders', title: '肩', icon: Crosshair },
+    { id: 'arms', title: '腕', icon: Crosshair },
+    { id: 'abs', title: '腹筋', icon: Crosshair },
+    { id: 'legs', title: '脚', icon: Crosshair },
+    { id: 'fullbody', title: '全身', icon: Star }
   ]
 
   const timeOptions = [
-    { id: 'morning', title: '朝', subtitle: '6-12時', emoji: '🌅' },
-    { id: 'afternoon', title: '昼', subtitle: '12-18時', emoji: '☀️' },
-    { id: 'evening', title: '夜', subtitle: '18-24時', emoji: '🌙' },
-    { id: 'flexible', title: 'いつでも', subtitle: '柔軟に', emoji: '🔄' }
+    { id: 'morning', title: '朝', subtitle: '6-12時', icon: Sunrise },
+    { id: 'afternoon', title: '昼', subtitle: '12-18時', icon: Sun },
+    { id: 'evening', title: '夜', subtitle: '18-24時', icon: Moon },
+    { id: 'flexible', title: 'いつでも', subtitle: '柔軟に', icon: RotateCcw }
   ]
 
   const isStepValid = (): boolean => {
@@ -342,9 +355,9 @@ export const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({ onComplete
               </label>
               <div className="grid grid-cols-3 gap-3">
                 {[
-                  { value: 'male', label: '男性', emoji: '👨' },
-                  { value: 'female', label: '女性', emoji: '👩' },
-                  { value: 'other', label: 'その他', emoji: '🌈' }
+                  { value: 'male', label: '男性', icon: User },
+                  { value: 'female', label: '女性', icon: User },
+                  { value: 'other', label: 'その他', icon: User }
                 ].map(option => (
                   <button
                     key={option.value}
@@ -359,7 +372,9 @@ export const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({ onComplete
                           : 'bg-white border-gray-200 text-gray-700 hover:border-purple-500'
                     }`}
                   >
-                    <div className="text-2xl mb-1">{option.emoji}</div>
+                    <div className="mb-1">
+                      <option.icon className="w-6 h-6 mx-auto" />
+                    </div>
                     <div className="text-sm font-medium">{option.label}</div>
                   </button>
                 ))}
@@ -418,7 +433,7 @@ export const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({ onComplete
           <div className="space-y-4">
             <div className={`text-sm text-center mb-4 ${darkMode ? 'text-purple-300' : 'text-purple-600'}`}>
               <span className="inline-flex items-center gap-2">
-                <span className="text-lg">✅</span>
+                <Check className="w-4 h-4" />
                 複数選択可能です
               </span>
             </div>
@@ -445,10 +460,12 @@ export const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({ onComplete
                 >
                   {selectedGoals.includes(goal.id) && (
                     <div className="absolute top-2 right-2">
-                      <span className="text-xl">✓</span>
+                      <Check className="w-5 h-5" />
                     </div>
                   )}
-                  <div className="text-2xl mb-2">{goal.emoji}</div>
+                  <div className="mb-2">
+                    <goal.icon className="w-8 h-8 mx-auto" />
+                  </div>
                   <div className="font-medium text-sm">{goal.title}</div>
                   <div className={`text-xs mt-1 ${selectedGoals.includes(goal.id) ? 'text-white/80' : darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                     {goal.subtitle}
@@ -477,7 +494,9 @@ export const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({ onComplete
                 }`}
               >
                 <div className="flex items-center gap-4">
-                  <div className="text-3xl">{option.emoji}</div>
+                  <div>
+                    <option.icon className="w-8 h-8" />
+                  </div>
                   <div>
                     <div className="font-semibold text-lg">{option.title}</div>
                     <div className={`text-sm ${profile.experience === option.id ? 'text-white/80' : darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -507,7 +526,9 @@ export const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({ onComplete
                       : 'bg-white border-gray-200 text-gray-700 hover:border-purple-500'
                 }`}
               >
-                <div className="text-4xl mb-2">{option.emoji}</div>
+                <div className="mb-2">
+                  <option.icon className="w-10 h-10 mx-auto" />
+                </div>
                 <div className="font-medium">{option.title}</div>
               </button>
             ))}
@@ -519,7 +540,7 @@ export const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({ onComplete
           <div className="space-y-4">
             <div className={`text-sm text-center mb-4 ${darkMode ? 'text-purple-300' : 'text-purple-600'}`}>
               <span className="inline-flex items-center gap-2">
-                <span className="text-lg">✅</span>
+                <Check className="w-4 h-4" />
                 複数選択可能です
               </span>
             </div>
@@ -551,10 +572,12 @@ export const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({ onComplete
                 >
                   {profile.preferences.equipment.includes(option.title) && (
                     <div className="absolute top-2 right-2">
-                      <span className="text-lg">✓</span>
+                      <Check className="w-4 h-4" />
                     </div>
                   )}
-                  <div className="text-2xl mb-1">{option.emoji}</div>
+                  <div className="mb-1">
+                    <option.icon className="w-6 h-6 mx-auto" />
+                  </div>
                   <div className="text-sm font-medium">{option.title}</div>
                 </button>
               ))}
@@ -567,7 +590,7 @@ export const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({ onComplete
           <div className="space-y-4">
             <div className={`text-sm text-center mb-4 ${darkMode ? 'text-purple-300' : 'text-purple-600'}`}>
               <span className="inline-flex items-center gap-2">
-                <span className="text-lg">✅</span>
+                <Check className="w-4 h-4" />
                 複数選択可能です
               </span>
             </div>
@@ -599,7 +622,7 @@ export const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({ onComplete
                 >
                   {profile.preferences.focusAreas.includes(option.title) && (
                     <div className="absolute top-1 right-1">
-                      <span className="text-sm">✓</span>
+                      <Check className="w-3 h-3" />
                     </div>
                   )}
                   <div className="text-sm font-medium">{option.title}</div>
@@ -663,7 +686,9 @@ export const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({ onComplete
                           : 'bg-white border-gray-200 text-gray-700 hover:border-purple-500'
                     }`}
                   >
-                    <div className="text-xl mb-1">{option.emoji}</div>
+                    <div className="mb-1">
+                      <option.icon className="w-6 h-6 mx-auto" />
+                    </div>
                     <div className="text-sm font-medium">{option.title}</div>
                     <div className={`text-xs ${
                       profile.preferences.preferredTime === option.id 
@@ -711,7 +736,9 @@ export const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({ onComplete
       <div className={`min-h-screen flex items-center justify-center p-4 ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
         <div className={`w-full max-w-md ${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-3xl shadow-2xl p-8`}>
           <div className="text-center mb-8">
-            <div className="text-6xl mb-4">🎉</div>
+            <div className="mb-4">
+              <Sparkles className="w-16 h-16 mx-auto text-yellow-500" />
+            </div>
             <h2 className={`text-2xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
               準備完了！
             </h2>
@@ -754,7 +781,7 @@ export const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({ onComplete
 
           <div className={`mt-6 p-4 rounded-xl ${darkMode ? 'bg-purple-900/20 border border-purple-700/30' : 'bg-purple-50 border border-purple-200'}`}>
             <p className={`text-sm ${darkMode ? 'text-purple-200' : 'text-purple-700'}`}>
-              💡 <strong>次のステップ:</strong> コピーしたプロンプトをお好みのAIに貼り付けて、パーソナライズされたトレーニングメニューを生成してください！
+              <Lightbulb className="w-4 h-4 inline mr-1" /> <strong>次のステップ:</strong> コピーしたプロンプトをお好みのAIに貼り付けて、パーソナライズされたトレーニングメニューを生成してください！
             </p>
           </div>
 
@@ -788,7 +815,9 @@ export const ProfileOnboarding: React.FC<ProfileOnboardingProps> = ({ onComplete
         <div className="p-8">
           {/* Step Info */}
           <div className="text-center mb-8">
-            <div className="text-5xl mb-4">{steps[currentStep].emoji}</div>
+            <div className="mb-4">
+              {React.createElement(stepIcons[steps[currentStep].id as keyof typeof stepIcons], { className: 'w-12 h-12 mx-auto text-purple-500' })}
+            </div>
             <h2 className={`text-2xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
               {steps[currentStep].title}
             </h2>
