@@ -1,21 +1,23 @@
-# FitLoop - AI-Powered Fitness Training App
+# FitLoop - メタプロンプト駆動型フィットネスアプリ
 
-FitLoop is a progressive fitness training application that generates personalized workout prompts for use with Claude AI. The app follows an 8-session training cycle that automatically adapts based on your progress.
+FitLoopは「プロンプトがプロンプトを生み出す」革新的なメタプロンプトシステムを採用したAI筋トレサポートアプリケーション。UI/UX仕様書に完全準拠し、モダンなデザインシステムで構築された次世代フィットネスアプリ。
 
 ## 🌐 Live URLs
 
 - **Production App**: https://fitloop-app.pages.dev
 - **Backend API**: https://fitloop-backend.riho-dare.workers.dev/api
 
-## ✨ Features
+## ✨ 主要機能
 
-- **8-Session Training Cycles**: Automatically progresses through scientifically designed workout sessions
-- **Personalized Prompts**: Generates training prompts based on your profile and goals
-- **Copy-Paste Workflow**: Simple interaction with Claude AI
-- **Progress Tracking**: Records all training sessions with timestamps
-- **Multi-language Support**: Available in English and Japanese
-- **Dark Mode**: Eye-friendly interface for any time of day
-- **Mobile Responsive**: Works seamlessly on all devices
+- **メタプロンプトシステム**: プロンプトがプロンプトを生成する革新的な仕組み
+- **4タブ構成**: ホーム、プロフィール、ライブラリ、使い方ガイド
+- **美しいUI/UX**: 仕様書準拠のモダンデザインシステム
+- **完全パーソナライズ**: 個人の目標・環境・経験に合わせたカスタマイズ
+- **外部AI連携**: Claude、ChatGPT、Geminiとのシームレスなコピー&ペースト
+- **自動進化**: トレーニング記録に基づいて継続的に最適化
+- **ダークモード**: 目に優しい夜間モード完全対応
+- **レスポンシブ**: モバイルファーストのユニバーサルデザイン
+- **多言語対応**: 日本語・英語サポート
 
 ## 🚀 Getting Started
 
@@ -60,27 +62,30 @@ npm run deploy
 - **Hosting**: Cloudflare Pages
 - **Testing**: Vitest + React Testing Library
 
-## 📱 How to Use
+## 📱 使用方法
 
-1. **Set Up Profile**: Enter your name, fitness goals, and training environment
-2. **Copy Training Prompt**: The app generates a personalized prompt for your current session
-3. **Paste in Claude**: Use the prompt with Claude AI to get your workout plan
-4. **Complete Training**: Follow Claude's guidance for your workout
-5. **Record Results**: Paste Claude's response back into the app
-6. **Automatic Progression**: App advances to the next session automatically
+1. **プロフィール設定**: 基本情報、目標、環境を折りたたみ式セクションで設定
+2. **メタプロンプト生成**: AIが最適なトレーニングプロンプトを自動生成
+3. **外部AI実行**: 生成されたプロンプトを外部AIサービス（Claude、ChatGPT、Gemini）にコピー&ペースト
+4. **トレーニング実施**: AIの指示に従ってトレーニングを実行
+5. **結果フィードバック**: AIの応答を貼り付けて次回のプロンプトを自動改善
+6. **継続的進化**: アプリが学習し、使うほど最適化されるパーソナルトレーナー
 
-## 🏋️ Training Sessions
+## 🏗️ アーキテクチャ
 
-The app cycles through 8 different training sessions:
+### UI/UXデザインシステム
+- **カラーパレット**: Primary Blue (#3B82F6)、Primary Purple (#8B5CF6)
+- **タイポグラフィ**: Inter フォントファミリー
+- **スペーシング**: 4px基準の一貫したスペーシングシステム
+- **アニメーション**: fadeIn、slideDown、pulse、spin
+- **コンポーネント**: 折りたたみ可能セクション、グラデーションボタン
 
-1. **胸・三頭筋** (Chest & Triceps)
-2. **背中・二頭筋** (Back & Biceps)
-3. **脚・コア** (Legs & Core)
-4. **肩・前腕** (Shoulders & Forearms)
-5. **全身サーキット** (Full Body Circuit)
-6. **上半身複合** (Upper Body Compound)
-7. **下半身・腹筋** (Lower Body & Abs)
-8. **機能的全身** (Functional Full Body)
+### 技術スタック詳細
+- **状態管理**: React Context + カスタムフック
+- **ルーティング**: シングルページアプリケーション（SPA）
+- **データ永続化**: IndexedDB（Dexie.js）
+- **アイコン**: Lucide React
+- **アニメーション**: CSS-in-JS + Tailwind CSS
 
 ## 🔒 Security
 
@@ -102,11 +107,13 @@ npm run test:coverage
 npm test tests/unit/services/PromptService.test.ts
 ```
 
-## 📝 Documentation
+## 📝 ドキュメント
 
-- [Architecture Overview](./docs/ORCHESTRATION_ARCHITECTURE.md)
-- [Development Guide](./docs/CLAUDE.md)
-- [Refactoring Notes](./docs/REFACTORING.md)
+- [UI/UXデザイン仕様書](./docs/UI_UX_DESIGN.md)
+- [ユーザーエクスペリエンスフロー](./docs/USER_EXPERIENCE_FLOW.md)
+- [UXデザインガイド](./docs/UX_DESIGN.md)
+- [開発ガイド](./docs/CLAUDE.md)
+- [リファクタリングノート](./docs/REFACTORING.md)
 
 ## 🤝 Contributing
 
