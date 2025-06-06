@@ -1,65 +1,28 @@
 import React, { useState, useEffect } from 'react'
-import { BookOpen, Search, Star, Copy, Trash2, ChevronRight, Sparkles, User, Target, Activity, Edit3 } from 'lucide-react'
+import { Plus, Search, Star, Copy, Trash2, Check } from 'lucide-react'
 import { useTheme } from '../../hooks/useTheme'
-import { apiService } from '../../services/ApiService'
 import { StorageManager } from '../../lib/db'
+import { useClipboard } from '../../hooks/useClipboard'
 import type { SavedPrompt } from '../../models/promptCollection'
-import type { GeneratedPrompt } from '../../models/prompt'
 
 const storage = new StorageManager()
 
-type UnifiedPrompt = (SavedPrompt | GeneratedPrompt) & {
-  promptType: 'saved' | 'generated'
-}
-
 export const PromptLibrary: React.FC = () => {
   const { darkMode } = useTheme()
-  const [allPrompts, setAllPrompts] = useState<UnifiedPrompt[]>([])
-  const [filteredPrompts, setFilteredPrompts] = useState<UnifiedPrompt[]>([])
+  const clipboard = useClipboard()
+  const [prompts, setPrompts] = useState<SavedPrompt[]>([])
+  const [filteredPrompts, setFilteredPrompts] = useState<SavedPrompt[]>([])
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState<string>('all')
-  const [selectedSource, setSelectedSource] = useState<string>('all')
+  const [selectedFilter, setSelectedFilter] = useState('all')
+  const [copiedPromptId, setCopiedPromptId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
-  const getPromptCategory = (prompt: UnifiedPrompt): string => {
-    if (prompt.promptType === 'saved') {
-      return (prompt as SavedPrompt).category || 'custom'
-    } else {
-      return (prompt as GeneratedPrompt).type || 'training'
-    }
-  }
-
-  const getPromptSource = (prompt: UnifiedPrompt): string => {
-    if (prompt.promptType === 'generated') {
-      return (prompt as GeneratedPrompt).source || 'manual'
-    }
-    return 'manual'
-  }
-
-  const getPromptTitle = (prompt: UnifiedPrompt): string => {
-    if (prompt.promptType === 'saved') {
-      return (prompt as SavedPrompt).title
-    } else {
-      const generated = prompt as GeneratedPrompt
-      return generated.title || `${generated.type}プロンプト`
-    }
-  }
-
-  const getPromptContent = (prompt: UnifiedPrompt): string => {
-    return prompt.content
-  }
-
-  const categories = [
-    { id: 'all', label: 'すべて', icon: BookOpen, count: allPrompts.length },
-    { id: 'training', label: 'トレーニング', icon: Sparkles, count: allPrompts.filter(p => getPromptCategory(p) === 'training').length },
-    { id: 'custom', label: 'カスタム', icon: Star, count: allPrompts.filter(p => getPromptCategory(p) === 'custom').length }
-  ]
-
-  const sources = [
-    { id: 'all', label: 'すべて', icon: BookOpen, count: allPrompts.length },
-    { id: 'profile', label: 'プロフィール', icon: User, count: allPrompts.filter(p => getPromptSource(p) === 'profile').length },
-    { id: 'training', label: 'トレーニング記録', icon: Target, count: allPrompts.filter(p => getPromptSource(p) === 'training').length },
-    { id: 'manual', label: '手動作成', icon: Star, count: allPrompts.filter(p => getPromptSource(p) === 'manual').length }
+  const filters = [
+    { id: 'all', label: '全て' },
+    { id: 'upper', label: '上半身' },
+    { id: 'lower', label: '下半身' },
+    { id: 'full', label: '全身' },
+    { id: 'favorite', label: 'お気に入り', icon: Star }
   ]
 
   useEffect(() => {
@@ -68,40 +31,13 @@ export const PromptLibrary: React.FC = () => {
 
   useEffect(() => {
     filterPrompts()
-  }, [searchQuery, selectedCategory, selectedSource, allPrompts])
+  }, [searchQuery, selectedFilter, prompts])
 
   const loadPrompts = async () => {
     setLoading(true)
     try {
-      // Load from both local storage and backend API
-      const [savedPrompts, generatedPrompts, backendPrompts] = await Promise.all([
-        storage.getSavedPrompts(),
-        storage.getGeneratedPrompts(),
-        loadBackendPrompts()
-      ])
-      
-      const unifiedPrompts: UnifiedPrompt[] = [
-        ...savedPrompts.map((p: SavedPrompt) => ({ ...p, promptType: 'saved' as const })),
-        ...generatedPrompts.map((p: GeneratedPrompt) => ({ ...p, promptType: 'generated' as const })),
-        ...backendPrompts
-      ]
-      
-      // Remove duplicates based on content or backend ID
-      const uniquePrompts = unifiedPrompts.filter((prompt, index, self) => {
-        return index === self.findIndex(p => {
-          // Check for duplicate content or backend ID
-          const hasBackendId = (prompt as any).metadata?.backendId && (p as any).metadata?.backendId
-          if (hasBackendId) {
-            return (prompt as any).metadata.backendId === (p as any).metadata.backendId
-          }
-          return p.content === prompt.content
-        })
-      })
-      
-      // Sort by creation date, newest first
-      uniquePrompts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      
-      setAllPrompts(uniquePrompts)
+      const savedPrompts = await storage.getSavedPrompts()
+      setPrompts(savedPrompts)
     } catch (error) {
       console.error('Failed to load prompts:', error)
     } finally {
@@ -109,354 +45,227 @@ export const PromptLibrary: React.FC = () => {
     }
   }
 
-  const loadBackendPrompts = async (): Promise<UnifiedPrompt[]> => {
-    try {
-      if (!apiService.isAuthenticated()) {
-        return []
-      }
-
-      const response = await apiService.getPrompts()
-      if (response.status === 200 && response.data) {
-        return response.data.map(prompt => ({
-          content: prompt.content,
-          title: prompt.title,
-          type: prompt.type,
-          source: prompt.source || 'manual',
-          used: prompt.used,
-          createdAt: new Date(prompt.created_at),
-          metadata: {
-            backendId: prompt.id,
-            profileId: prompt.metadata?.profileId,
-            profileName: prompt.metadata?.profileName,
-            generatedFrom: prompt.metadata?.generatedFrom
-          },
-          promptType: 'generated' as const
-        }))
-      }
-      return []
-    } catch (error) {
-      console.error('Failed to load backend prompts:', error)
-      return []
-    }
-  }
-
   const filterPrompts = () => {
-    let filtered = allPrompts
+    let filtered = prompts
 
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter(p => getPromptCategory(p) === selectedCategory)
-    }
-
-    if (selectedSource !== 'all') {
-      filtered = filtered.filter(p => getPromptSource(p) === selectedSource)
-    }
-
+    // Filter by search query
     if (searchQuery) {
-      const query = searchQuery.toLowerCase()
-      filtered = filtered.filter(p => {
-        const title = getPromptTitle(p).toLowerCase()
-        const content = getPromptContent(p).toLowerCase()
-        
-        if (p.promptType === 'saved') {
-          const saved = p as SavedPrompt
-          return title.includes(query) ||
-                 content.includes(query) ||
-                 saved.description?.toLowerCase().includes(query) ||
-                 saved.tags?.some(tag => tag.toLowerCase().includes(query))
-        } else {
-          return title.includes(query) || content.includes(query)
-        }
-      })
+      filtered = filtered.filter(prompt => 
+        prompt.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        prompt.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        prompt.description?.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    }
+
+    // Filter by category
+    if (selectedFilter !== 'all') {
+      if (selectedFilter === 'favorite') {
+        filtered = filtered.filter(prompt => prompt.isFavorite)
+      } else {
+        filtered = filtered.filter(prompt => {
+          const tags = prompt.tags || []
+          return tags.some(tag => tag.toLowerCase().includes(selectedFilter))
+        })
+      }
     }
 
     setFilteredPrompts(filtered)
   }
 
-  const handleCopyPrompt = async (prompt: UnifiedPrompt) => {
+  const handleCopyPrompt = async (prompt: SavedPrompt) => {
     try {
-      await navigator.clipboard.writeText(getPromptContent(prompt))
-      
-      // Update backend if this prompt came from backend
-      const backendId = (prompt as any).metadata?.backendId
-      if (backendId && apiService.isAuthenticated()) {
-        try {
-          await apiService.markPromptAsUsed(backendId)
-        } catch (error) {
-          console.error('Failed to mark prompt as used in backend:', error)
-        }
-      }
-      
-      // Usage count tracking removed
-      // await loadPrompts() // No need to reload since we're not tracking usage
+      await clipboard.copy(prompt.content)
+      setCopiedPromptId(prompt.id?.toString() || '')
+      setTimeout(() => setCopiedPromptId(null), 2000)
     } catch (error) {
       console.error('Failed to copy prompt:', error)
     }
   }
 
-  const handleDeletePrompt = async (prompt: UnifiedPrompt) => {
-    if (confirm('このプロンプトを削除しますか？')) {
+  const handleToggleFavorite = async (prompt: SavedPrompt) => {
+    try {
+      const updatedPrompt = { ...prompt, isFavorite: !prompt.isFavorite }
+      await storage.updateSavedPrompt(updatedPrompt)
+      loadPrompts()
+    } catch (error) {
+      console.error('Failed to toggle favorite:', error)
+    }
+  }
+
+  const handleDeletePrompt = async (promptId: string) => {
+    if (window.confirm('このメニューを削除しますか？')) {
       try {
-        if (prompt.promptType === 'saved' && prompt.id) {
-          await storage.deletePrompt(prompt.id)
-        } else if (prompt.promptType === 'generated' && prompt.id) {
-          await storage.deleteGeneratedPrompt(prompt.id)
-        }
-        await loadPrompts()
+        await storage.deleteSavedPrompt(promptId)
+        loadPrompts()
       } catch (error) {
         console.error('Failed to delete prompt:', error)
       }
     }
   }
 
-  const formatDate = (date: Date | string) => {
-    return new Date(date).toLocaleDateString('ja-JP', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
-    })
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case 'upper':
+      case '上半身':
+        return darkMode ? 'bg-blue-700 text-blue-300' : 'bg-blue-100 text-blue-700'
+      case 'lower':
+      case '下半身':
+        return darkMode ? 'bg-green-700 text-green-300' : 'bg-green-100 text-green-700'
+      case 'full':
+      case '全身':
+        return darkMode ? 'bg-purple-700 text-purple-300' : 'bg-purple-100 text-purple-700'
+      default:
+        return darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'
+    }
+  }
+
+  const getPromptCategory = (prompt: SavedPrompt): string => {
+    const tags = prompt.tags || []
+    if (tags.some(tag => tag.includes('上半身'))) return '上半身'
+    if (tags.some(tag => tag.includes('下半身'))) return '下半身'
+    if (tags.some(tag => tag.includes('全身'))) return '全身'
+    return prompt.category || 'その他'
   }
 
   return (
-    <div className={`${darkMode ? 'bg-gray-900' : 'bg-gray-50'} min-h-screen pb-20`}>
-      {/* Header */}
-      <div className={`sticky top-0 z-10 ${darkMode ? 'bg-gray-900/95' : 'bg-white/95'} backdrop-blur-xl border-b ${darkMode ? 'border-gray-800' : 'border-gray-200'}`}>
-        <div className="p-4">
-          <h1 className={`text-2xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-            プロンプトライブラリ
-          </h1>
-          
-          {/* Search Bar */}
-          <div className="relative mb-4">
-            <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="プロンプトやタイトルを検索..."
-              className={`w-full pl-12 pr-4 py-3 rounded-2xl border-2 transition-all ${
-                darkMode 
-                  ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-purple-500' 
-                  : 'bg-white border-gray-200 text-gray-900 placeholder-gray-500 focus:border-purple-500'
+    <div className={`min-h-screen ${darkMode ? 'bg-dark-primary' : 'bg-background-primary'} p-4`}>
+      {/* Create New Menu Button */}
+      <button className="w-full h-12 bg-gradient-primary text-white rounded-lg shadow-md hover:scale-102 hover:shadow-lg transition-all duration-200 mb-4 flex items-center justify-center gap-2 font-medium">
+        <Plus size={20} />
+        新規メニュー作成
+      </button>
+
+      {/* Search Bar */}
+      <div className={`${darkMode ? 'bg-dark-secondary' : 'bg-white'} rounded-xl shadow-sm p-3 mb-4 flex items-center gap-3`}>
+        <Search size={20} className={darkMode ? 'text-gray-400' : 'text-gray-500'} />
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="メニューを検索..."
+          className={`flex-1 bg-transparent border-none outline-none ${
+            darkMode ? 'text-white placeholder-gray-400' : 'text-gray-900 placeholder-gray-500'
+          }`}
+        />
+      </div>
+
+      {/* Filter Buttons */}
+      <div className="overflow-x-auto pb-2 mb-4">
+        <div className="flex gap-2 min-w-max">
+          {filters.map((filter) => (
+            <button
+              key={filter.id}
+              onClick={() => setSelectedFilter(filter.id)}
+              className={`px-4 py-2 rounded-lg whitespace-nowrap transition-all duration-200 flex items-center gap-1 ${
+                selectedFilter === filter.id
+                  ? 'bg-blue-500 text-white'
+                  : darkMode
+                  ? 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}
-            />
-          </div>
-
-          {/* Filters */}
-          <div className="space-y-3">
-            {/* Category Filters */}
-            <div>
-              <p className={`text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>カテゴリ</p>
-              <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-                {categories.map(category => {
-                  const Icon = category.icon
-                  return (
-                    <button
-                      key={category.id}
-                      onClick={() => setSelectedCategory(category.id)}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-all ${
-                        selectedCategory === category.id
-                          ? darkMode
-                            ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
-                            : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
-                          : darkMode
-                            ? 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    >
-                      <Icon className="w-4 h-4" />
-                      <span className="font-medium">{category.label}</span>
-                      <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                        selectedCategory === category.id
-                          ? 'bg-white/20'
-                          : darkMode ? 'bg-gray-700' : 'bg-gray-200'
-                      }`}>
-                        {category.count}
-                      </span>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* Source Filters */}
-            <div>
-              <p className={`text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>作成元</p>
-              <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-                {sources.map(source => {
-                  const Icon = source.icon
-                  return (
-                    <button
-                      key={source.id}
-                      onClick={() => setSelectedSource(source.id)}
-                      className={`flex items-center gap-2 px-3 py-1.5 rounded-full whitespace-nowrap transition-all text-sm ${
-                        selectedSource === source.id
-                          ? darkMode
-                            ? 'bg-gradient-to-r from-blue-600 to-teal-600 text-white'
-                            : 'bg-gradient-to-r from-blue-500 to-teal-500 text-white'
-                          : darkMode
-                            ? 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    >
-                      <Icon className="w-3 h-3" />
-                      <span className="font-medium">{source.label}</span>
-                      <span className={`text-xs px-1 py-0.5 rounded-full ${
-                        selectedSource === source.id
-                          ? 'bg-white/20'
-                          : darkMode ? 'bg-gray-700' : 'bg-gray-200'
-                      }`}>
-                        {source.count}
-                      </span>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
+            >
+              {filter.icon && <filter.icon size={16} />}
+              {filter.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Prompts List */}
-      <div className="p-4">
-        {loading ? (
-          <div className="space-y-4">
-            {[1, 2, 3].map(i => (
-              <div key={i} className={`rounded-2xl p-4 ${darkMode ? 'bg-gray-800' : 'bg-white'} skeleton-loader`}>
-                <div className="h-6 w-3/4 mb-2 rounded" />
-                <div className="h-4 w-full mb-2 rounded" />
-                <div className="h-4 w-2/3 rounded" />
-              </div>
-            ))}
-          </div>
-        ) : filteredPrompts.length === 0 ? (
-          <div className={`text-center py-12 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-            <BookOpen className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p className="text-lg font-medium mb-2">プロンプトが見つかりません</p>
-            <p className="text-sm mb-4">
-              {searchQuery || selectedCategory !== 'all' || selectedSource !== 'all'
-                ? 'フィルターを調整してみてください'
-                : 'プロフィール保存やトレーニング記録でプロンプトを生成しましょう'}
-            </p>
-            {(searchQuery || selectedCategory !== 'all' || selectedSource !== 'all') && (
-              <button
-                onClick={() => {
-                  setSearchQuery('')
-                  setSelectedCategory('all')
-                  setSelectedSource('all')
-                }}
-                className={`px-4 py-2 rounded-xl text-sm transition-all ${
-                  darkMode 
-                    ? 'bg-purple-600 hover:bg-purple-700 text-white'
-                    : 'bg-purple-500 hover:bg-purple-600 text-white'
-                }`}
-              >
-                すべてのフィルターをクリア
-              </button>
-            )}
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {filteredPrompts.map(prompt => (
-              <div
-                key={`${prompt.promptType}-${prompt.id}`}
-                className={`group rounded-2xl p-4 transition-all ${
-                  darkMode 
-                    ? 'bg-gray-800 hover:bg-gray-750 border border-gray-700' 
-                    : 'bg-white hover:shadow-lg border border-gray-100'
-                }`}
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <div className="flex-1">
-                    <h3 className={`font-semibold text-lg ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                      {getPromptTitle(prompt)}
-                    </h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className={`text-xs px-2 py-1 rounded-full ${
-                        getPromptSource(prompt) === 'profile'
-                          ? 'bg-purple-500/20 text-purple-500'
-                          : getPromptSource(prompt) === 'training'
-                          ? 'bg-blue-500/20 text-blue-500'
-                          : 'bg-gray-500/20 text-gray-500'
-                      }`}>
-                        {getPromptSource(prompt) === 'profile' ? (
-                          <><User className="w-3 h-3 inline mr-1" />プロフィール</>
-                        ) : getPromptSource(prompt) === 'training' ? (
-                          <><Activity className="w-3 h-3 inline mr-1" />トレーニング記録</>
-                        ) : (
-                          <><Edit3 className="w-3 h-3 inline mr-1" />手動作成</>
-                        )}
-                      </span>
-                      <span className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-                        {formatDate(prompt.createdAt)}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={() => handleCopyPrompt(prompt)}
-                      className={`p-2 rounded-lg transition-colors ${
-                        darkMode 
-                          ? 'hover:bg-gray-700 text-gray-400 hover:text-white' 
-                          : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700'
-                      }`}
-                      title="コピー"
-                    >
-                      <Copy className="w-4 h-4" />
-                    </button>
-                    {((prompt.promptType === 'saved' && (prompt as SavedPrompt).category === 'custom') || 
-                      (prompt.promptType === 'generated')) && (
-                      <button
-                        onClick={() => handleDeletePrompt(prompt)}
-                        className={`p-2 rounded-lg transition-colors ${
-                          darkMode 
-                            ? 'hover:bg-red-900/50 text-gray-400 hover:text-red-400' 
-                            : 'hover:bg-red-50 text-gray-500 hover:text-red-500'
-                        }`}
-                        title="削除"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+      {/* Menu Cards */}
+      {loading ? (
+        <div className="flex justify-center items-center py-12">
+          <div className="w-8 h-8 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+        </div>
+      ) : filteredPrompts.length === 0 ? (
+        <div className={`text-center py-12 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+          <div className="mb-4">メニューがまだありません</div>
+          <button className="bg-gradient-primary text-white px-6 py-2 rounded-lg hover:scale-105 transition-all duration-200">
+            新規作成
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {filteredPrompts.map((prompt, index) => (
+            <div
+              key={prompt.id || index}
+              className={`${
+                darkMode ? 'bg-dark-secondary' : 'bg-white'
+              } rounded-xl shadow-sm hover:shadow-md hover:scale-102 transition-all duration-200 p-4 animate-fadeIn`}
+              style={{ animationDelay: `${index * 100}ms` }}
+            >
+              {/* Header */}
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex-1">
+                  <h3 className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                    {prompt.title}
+                  </h3>
+                  <span className={`inline-block px-2 py-0.5 rounded-full text-xs ${getCategoryColor(getPromptCategory(prompt))} mt-1`}>
+                    {getPromptCategory(prompt)}
+                  </span>
+                </div>
+                
+                {/* Action Buttons */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleToggleFavorite(prompt)}
+                    className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all duration-200 ${
+                      prompt.isFavorite
+                        ? 'text-yellow-500 hover:scale-110 animate-pulse'
+                        : darkMode
+                        ? 'text-gray-400 hover:text-yellow-500'
+                        : 'text-gray-400 hover:text-yellow-500'
+                    }`}
+                  >
+                    <Star size={16} className={prompt.isFavorite ? 'fill-current' : ''} />
+                  </button>
+                  
+                  <button
+                    onClick={() => handleCopyPrompt(prompt)}
+                    className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all duration-200 ${
+                      copiedPromptId === prompt.id?.toString()
+                        ? 'text-green-500'
+                        : darkMode
+                        ? 'text-gray-400 hover:text-blue-400'
+                        : 'text-gray-400 hover:text-blue-500'
+                    }`}
+                  >
+                    {copiedPromptId === prompt.id?.toString() ? (
+                      <Check size={16} />
+                    ) : (
+                      <Copy size={16} />
                     )}
-                  </div>
-                </div>
-
-                {prompt.promptType === 'saved' && (prompt as SavedPrompt).description && (
-                  <p className={`text-sm mb-3 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                    {(prompt as SavedPrompt).description}
-                  </p>
-                )}
-
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {prompt.promptType === 'saved' && (prompt as SavedPrompt).isMetaPrompt && (
-                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-                      メタプロンプト
-                    </span>
-                  )}
-                  {prompt.promptType === 'saved' && (prompt as SavedPrompt).tags?.map(tag => (
-                    <span
-                      key={tag}
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        darkMode 
-                          ? 'bg-gray-700 text-gray-300' 
-                          : 'bg-gray-100 text-gray-600'
-                      }`}
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-
-                <div className={`flex items-center justify-between text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-                  <div className="flex items-center gap-4">
-                    {/* Usage count display removed */}
-                  </div>
-                  <ChevronRight className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />
+                  </button>
+                  
+                  <button
+                    onClick={() => handleDeletePrompt(prompt.id?.toString() || '')}
+                    className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all duration-200 ${
+                      darkMode
+                        ? 'text-gray-400 hover:text-red-400'
+                        : 'text-gray-400 hover:text-red-500'
+                    }`}
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+
+              {/* Description */}
+              {prompt.description && (
+                <p className={`text-sm mb-3 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  {prompt.description}
+                </p>
+              )}
+
+              {/* Footer */}
+              <div className={`flex items-center justify-between text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                <span>
+                  {new Date(prompt.createdAt).toLocaleDateString('ja-JP')} • {prompt.usageCount || 0}回使用
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

@@ -485,7 +485,7 @@ function AppContent() {
             </div>
           )}
 
-          {activeTab === 'settings' && (
+          {activeTab === 'help' && (
             <div className="page-transition -mx-6 -my-8">
               <Settings />
             </div>

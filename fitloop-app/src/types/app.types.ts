@@ -1,4 +1,4 @@
-export type TabType = 'prompt' | 'profile' | 'library' | 'settings'
+export type TabType = 'prompt' | 'profile' | 'library' | 'help'
 
 export interface TabItem {
   id: TabType
