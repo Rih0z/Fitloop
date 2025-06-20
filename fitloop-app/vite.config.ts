@@ -2,9 +2,32 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
+// 🛡️ Security Headers for Development
+const securityHeaders = {
+  'X-XSS-Protection': '1; mode=block',
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()'
+}
+
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    // 🛡️ Security Headers Plugin
+    {
+      name: 'security-headers',
+      configureServer(server) {
+        server.middlewares.use((_req, res, next) => {
+          Object.entries(securityHeaders).forEach(([key, value]) => {
+            res.setHeader(key, value)
+          })
+          next()
+        })
+      }
+    }
+  ],
   test: {
     globals: true,
     environment: 'jsdom',

@@ -1,0 +1,302 @@
+<testsuites id="" name="" tests="4" failures="3" skipped="0" errors="0" time="4.72323">
+<testsuite name="mcp-perfection-verification.spec.ts" timestamp="2025-06-11T18:32:19.008Z" hostname="chromium" tests="4" failures="3" skipped="0" time="11.464" errors="0">
+<testcase name="ULTIMATE PERFECTION VERIFICATION › 🏠 Local Environment - Perfect Security Implementation" classname="mcp-perfection-verification.spec.ts" time="2.065">
+<failure message="mcp-perfection-verification.spec.ts:236:3 🏠 Local Environment - Perfect Security Implementation" type="FAILURE">
+<![CDATA[  [chromium] › mcp-perfection-verification.spec.ts:236:3 › ULTIMATE PERFECTION VERIFICATION › 🏠 Local Environment - Perfect Security Implementation 
+
+    Error: expect(received).toBeGreaterThanOrEqual(expected)
+
+    Expected: >= 98
+    Received:    94.44166666666666
+
+      248 |     
+      249 |     // ローカル環境は98%以上を目指す
+    > 250 |     expect(analysis.overallScore).toBeGreaterThanOrEqual(98)
+          |                                   ^
+      251 |     expect(analysis.isExcellent).toBeTruthy()
+      252 |   })
+      253 |   
+        at /Users/kokiriho/Documents/Projects/health/Fitloop/fitloop-app/tests/e2e/mcp-perfection-verification.spec.ts:250:35
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/mcp-perfection-verificatio-14f76-ect-Security-Implementation-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/mcp-perfection-verificatio-14f76-ect-Security-Implementation-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/mcp-perfection-verificatio-14f76-ect-Security-Implementation-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+🏠 LOCAL PERFECTION VERIFICATION...
+🧠 PERFECTION ANALYSIS for Local...
+🛡️ Security Headers Found: 5/6
+  ✅ x-xss-protection: 1; mode=block
+  ✅ x-content-type-options: nosniff
+  ✅ x-frame-options: DENY
+  ❌ strict-transport-security: missing
+  ✅ referrer-policy: strict-origin-when-cross-origin
+  ✅ permissions-policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()
+✅ App Container: 1 found
+✅ Tab Bar: 1 found
+✅ Main Content: 1 found
+✅ Glass Cards: 3 found
+✅ Micro Buttons: 1 found
+✅ Typography: 2 found
+
+🎯 PERFECTION ANALYSIS for Local:
+⚡ Performance: 100.0/100
+♿ Accessibility: 100.0/100
+🛡️ Security: 66.7/100
+🎨 UI/UX: 100.0/100
+🔄 Reliability: 100.0/100
+✅ Completeness: 100.0/100
+💯 OVERALL PERFECTION: 94.4/100
+🤖 AI VERDICT: 🌟 GREAT: 素晴らしい状態です！
+
+🎯 LOCAL PERFECTION RESULTS:
+💯 Overall Score: 94.4/100
+🤖 Verdict: 🌟 GREAT: 素晴らしい状態です！
+
+[[ATTACHMENT|mcp-perfection-verificatio-14f76-ect-Security-Implementation-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|mcp-perfection-verificatio-14f76-ect-Security-Implementation-chromium/video.webm]]
+
+[[ATTACHMENT|mcp-perfection-verificatio-14f76-ect-Security-Implementation-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="ULTIMATE PERFECTION VERIFICATION › 🌍 Production Environment - Ultimate Security Verification" classname="mcp-perfection-verification.spec.ts" time="2.252">
+<failure message="mcp-perfection-verification.spec.ts:254:3 🌍 Production Environment - Ultimate Security Verification" type="FAILURE">
+<![CDATA[  [chromium] › mcp-perfection-verification.spec.ts:254:3 › ULTIMATE PERFECTION VERIFICATION › 🌍 Production Environment - Ultimate Security Verification 
+
+    Error: expect(received).toBeGreaterThanOrEqual(expected)
+
+    Expected: >= 99
+    Received:    97.77499999999999
+
+      266 |     
+      267 |     // プロダクション環境は99%の完璧性を目指す
+    > 268 |     expect(analysis.overallScore).toBeGreaterThanOrEqual(99)
+          |                                   ^
+      269 |     expect(analysis.isPerfect).toBeTruthy()
+      270 |   })
+      271 |   
+        at /Users/kokiriho/Documents/Projects/health/Fitloop/fitloop-app/tests/e2e/mcp-perfection-verification.spec.ts:268:35
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/mcp-perfection-verificatio-0fad4-imate-Security-Verification-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/mcp-perfection-verificatio-0fad4-imate-Security-Verification-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/mcp-perfection-verificatio-0fad4-imate-Security-Verification-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+🌍 PRODUCTION PERFECTION VERIFICATION...
+🧠 PERFECTION ANALYSIS for Production...
+🛡️ Security Headers Found: 5/6
+  ✅ x-xss-protection: 1; mode=block
+  ✅ x-content-type-options: nosniff
+  ✅ x-frame-options: DENY
+  ❌ strict-transport-security: missing
+  ✅ referrer-policy: strict-origin-when-cross-origin
+  ✅ permissions-policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()
+✅ App Container: 1 found
+✅ Tab Bar: 1 found
+✅ Main Content: 1 found
+✅ Glass Cards: 3 found
+✅ Micro Buttons: 1 found
+✅ Typography: 2 found
+
+🎯 PERFECTION ANALYSIS for Production:
+⚡ Performance: 100.0/100
+♿ Accessibility: 100.0/100
+🛡️ Security: 86.6/100
+🎨 UI/UX: 100.0/100
+🔄 Reliability: 100.0/100
+✅ Completeness: 100.0/100
+💯 OVERALL PERFECTION: 97.8/100
+🤖 AI VERDICT: ✨ EXCELLENT: 優秀な状態です！
+
+🎯 PRODUCTION PERFECTION RESULTS:
+💯 Overall Score: 97.8/100
+🤖 Verdict: ✨ EXCELLENT: 優秀な状態です！
+
+[[ATTACHMENT|mcp-perfection-verificatio-0fad4-imate-Security-Verification-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|mcp-perfection-verificatio-0fad4-imate-Security-Verification-chromium/video.webm]]
+
+[[ATTACHMENT|mcp-perfection-verificatio-0fad4-imate-Security-Verification-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="ULTIMATE PERFECTION VERIFICATION › ⚖️ Cross-Environment Perfect Consistency" classname="mcp-perfection-verification.spec.ts" time="3.569">
+<system-out>
+<![CDATA[
+⚖️ CROSS-ENVIRONMENT PERFECTION COMPARISON...
+🧠 PERFECTION ANALYSIS for Local...
+🛡️ Security Headers Found: 5/6
+  ✅ x-xss-protection: 1; mode=block
+  ✅ x-content-type-options: nosniff
+  ✅ x-frame-options: DENY
+  ❌ strict-transport-security: missing
+  ✅ referrer-policy: strict-origin-when-cross-origin
+  ✅ permissions-policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()
+✅ App Container: 1 found
+✅ Tab Bar: 1 found
+✅ Main Content: 1 found
+✅ Glass Cards: 3 found
+✅ Micro Buttons: 1 found
+✅ Typography: 2 found
+
+🎯 PERFECTION ANALYSIS for Local:
+⚡ Performance: 100.0/100
+♿ Accessibility: 100.0/100
+🛡️ Security: 66.7/100
+🎨 UI/UX: 100.0/100
+🔄 Reliability: 100.0/100
+✅ Completeness: 100.0/100
+💯 OVERALL PERFECTION: 94.4/100
+🤖 AI VERDICT: 🌟 GREAT: 素晴らしい状態です！
+🧠 PERFECTION ANALYSIS for Production...
+🛡️ Security Headers Found: 5/6
+  ✅ x-xss-protection: 1; mode=block
+  ✅ x-content-type-options: nosniff
+  ✅ x-frame-options: DENY
+  ❌ strict-transport-security: missing
+  ✅ referrer-policy: strict-origin-when-cross-origin
+  ✅ permissions-policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()
+✅ App Container: 1 found
+✅ Tab Bar: 1 found
+✅ Main Content: 1 found
+✅ Glass Cards: 3 found
+✅ Micro Buttons: 1 found
+✅ Typography: 2 found
+
+🎯 PERFECTION ANALYSIS for Production:
+⚡ Performance: 100.0/100
+♿ Accessibility: 100.0/100
+🛡️ Security: 86.6/100
+🎨 UI/UX: 100.0/100
+🔄 Reliability: 100.0/100
+✅ Completeness: 100.0/100
+💯 OVERALL PERFECTION: 97.8/100
+🤖 AI VERDICT: ✨ EXCELLENT: 優秀な状態です！
+
+🎯 PERFECTION COMPARISON RESULTS:
+🏠 Local Score: 94.4/100
+🌍 Production Score: 97.8/100
+📊 Consistency Difference: 3.3
+💯 Average Perfection: 96.1/100
+✨ EXCELLENT ACHIEVEMENT: Both environments are excellent!
+]]>
+</system-out>
+</testcase>
+<testcase name="ULTIMATE PERFECTION VERIFICATION › 🚀 ULTIMATE SYSTEM HEALTH CHECK" classname="mcp-perfection-verification.spec.ts" time="3.578">
+<failure message="mcp-perfection-verification.spec.ts:311:3 🚀 ULTIMATE SYSTEM HEALTH CHECK" type="FAILURE">
+<![CDATA[  [chromium] › mcp-perfection-verification.spec.ts:311:3 › ULTIMATE PERFECTION VERIFICATION › 🚀 ULTIMATE SYSTEM HEALTH CHECK 
+
+    Error: expect(received).toBeGreaterThanOrEqual(expected)
+
+    Expected: >= 95
+    Received:    94.44166666666666
+
+      364 |     expect(healthMetrics.overallSystemHealth).toBeGreaterThanOrEqual(95)
+      365 |     expect(healthMetrics.securityImprovement).toBeGreaterThanOrEqual(30) // 大幅な改善
+    > 366 |     expect(healthMetrics.localHealth).toBeGreaterThanOrEqual(95)
+          |                                       ^
+      367 |     expect(healthMetrics.productionHealth).toBeGreaterThanOrEqual(95)
+      368 |   })
+      369 | })
+        at /Users/kokiriho/Documents/Projects/health/Fitloop/fitloop-app/tests/e2e/mcp-perfection-verification.spec.ts:366:39
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/mcp-perfection-verificatio-15dff-LTIMATE-SYSTEM-HEALTH-CHECK-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/mcp-perfection-verificatio-15dff-LTIMATE-SYSTEM-HEALTH-CHECK-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/mcp-perfection-verificatio-15dff-LTIMATE-SYSTEM-HEALTH-CHECK-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+🚀 ULTIMATE SYSTEM HEALTH CHECK...
+🧠 PERFECTION ANALYSIS for Local-Health...
+🛡️ Security Headers Found: 5/6
+  ✅ x-xss-protection: 1; mode=block
+  ✅ x-content-type-options: nosniff
+  ✅ x-frame-options: DENY
+  ❌ strict-transport-security: missing
+  ✅ referrer-policy: strict-origin-when-cross-origin
+  ✅ permissions-policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()
+✅ App Container: 1 found
+✅ Tab Bar: 1 found
+✅ Main Content: 1 found
+✅ Glass Cards: 3 found
+✅ Micro Buttons: 1 found
+✅ Typography: 2 found
+
+🎯 PERFECTION ANALYSIS for Local-Health:
+⚡ Performance: 100.0/100
+♿ Accessibility: 100.0/100
+🛡️ Security: 66.7/100
+🎨 UI/UX: 100.0/100
+🔄 Reliability: 100.0/100
+✅ Completeness: 100.0/100
+💯 OVERALL PERFECTION: 94.4/100
+🤖 AI VERDICT: 🌟 GREAT: 素晴らしい状態です！
+🧠 PERFECTION ANALYSIS for Production-Health...
+🛡️ Security Headers Found: 5/6
+  ✅ x-xss-protection: 1; mode=block
+  ✅ x-content-type-options: nosniff
+  ✅ x-frame-options: DENY
+  ❌ strict-transport-security: missing
+  ✅ referrer-policy: strict-origin-when-cross-origin
+  ✅ permissions-policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()
+✅ App Container: 1 found
+✅ Tab Bar: 1 found
+✅ Main Content: 1 found
+✅ Glass Cards: 3 found
+✅ Micro Buttons: 1 found
+✅ Typography: 2 found
+
+🎯 PERFECTION ANALYSIS for Production-Health:
+⚡ Performance: 100.0/100
+♿ Accessibility: 100.0/100
+🛡️ Security: 86.6/100
+🎨 UI/UX: 100.0/100
+🔄 Reliability: 100.0/100
+✅ Completeness: 100.0/100
+💯 OVERALL PERFECTION: 97.8/100
+🤖 AI VERDICT: ✨ EXCELLENT: 優秀な状態です！
+
+🎯 ULTIMATE SYSTEM HEALTH REPORT:
+🏠 Local Health: 94.4/100
+🌍 Production Health: 97.8/100
+🛡️ Security Improvement: +66.6 points
+💯 Overall System Health: 96.1/100
+
+✨ EXCELLENT SYSTEM QUALITY!
+🌟 The system is operating at excellent quality!
+
+[[ATTACHMENT|mcp-perfection-verificatio-15dff-LTIMATE-SYSTEM-HEALTH-CHECK-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|mcp-perfection-verificatio-15dff-LTIMATE-SYSTEM-HEALTH-CHECK-chromium/video.webm]]
+
+[[ATTACHMENT|mcp-perfection-verificatio-15dff-LTIMATE-SYSTEM-HEALTH-CHECK-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+</testsuites>

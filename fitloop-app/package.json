@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build && cp config/_redirects dist/",
+    "build": "tsc -b && vite build && cp config/_redirects dist/ && cp config/_headers dist/",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",

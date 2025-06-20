@@ -218,6 +218,20 @@ export class StorageManager {
     await db.savedPrompts.delete(id)
   }
 
+  async deleteSavedPrompt(id: string): Promise<void> {
+    await db.savedPrompts.delete(parseInt(id))
+  }
+
+  async updateSavedPrompt(prompt: SavedPrompt): Promise<void> {
+    if (prompt.id) {
+      const id = typeof prompt.id === 'string' ? parseInt(prompt.id) : prompt.id
+      await db.savedPrompts.update(id, {
+        ...prompt,
+        updatedAt: new Date()
+      })
+    }
+  }
+
   async deleteGeneratedPrompt(id: number): Promise<void> {
     await db.prompts.delete(id)
   }

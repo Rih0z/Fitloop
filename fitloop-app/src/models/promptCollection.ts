@@ -18,6 +18,7 @@ export interface SavedPrompt {
   tags: string[]
   usageCount: number
   lastUsed?: Date
+  isFavorite?: boolean
   createdAt: Date
   updatedAt: Date
 }
